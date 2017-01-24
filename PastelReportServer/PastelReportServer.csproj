@@ -87,6 +87,8 @@
     <Compile Include="Reports\LevyRoll\PeriodDataItem.cs" />
     <Compile Include="Reports\LevyRoll\SundryDataItem.cs" />
     <Compile Include="Reports\MaintenanceReport\MaintenanceReport.cs" />
+    <Compile Include="Reports\MaintenanceReport\MaintenanceReportDataItem.cs" />
+    <Compile Include="Reports\MaintenanceReport\PervasiveAccount.cs" />
     <Compile Include="Reports\PervasiveDataItem.cs" />
     <Compile Include="Reports\RdlcHelper.cs" />
     <Compile Include="Reports\ReportDataBase.cs" />
@@ -96,6 +98,7 @@
   <ItemGroup>
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.LevyRollDataItem.datasource" />
     <Content Include="ReportService.svc" />
+    <EmbeddedResource Include="Reports\MaintenanceReport\MaintenanceReport.rdlc" />
     <EmbeddedResource Include="Reports\Scripts\Sundries.sql" />
     <EmbeddedResource Include="Reports\Scripts\PeriodParameters.sql" />
     <EmbeddedResource Include="Reports\Scripts\LevyRollAllCustomers.sql" />
@@ -123,6 +126,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Properties\DataSources\Astrodon.Reports.MaintenanceReport.MaintenanceReportDataItem.datasource" />
     <None Include="Properties\DataSources\Astrodon.Reports.SupplierReport.SupplierReportDataItem.datasource" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
