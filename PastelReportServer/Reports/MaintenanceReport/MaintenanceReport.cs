@@ -59,7 +59,7 @@ namespace Astrodon.Reports.MaintenanceReport
                         Amount = m.TotalAmount
                     };
 
-            var reportData = q.OrderBy(a => a.Classification).ThenBy(a => a.Unit).ThenBy(a => a.MaintenanceType).ThenBy(a => a.Supplier).ToList();
+            var reportData = q.OrderBy(a => a.MaintenanceClassificationType).ThenBy(a => a.Unit).ThenBy(a => a.MaintenanceType).ThenBy(a => a.Supplier).ToList();
 
             if (reportData.Count <= 0)
                 return null;
@@ -73,7 +73,7 @@ namespace Astrodon.Reports.MaintenanceReport
             foreach(var dataItem in reportData)
                 dataItem.LoadBudget(accountList);
 
-            return RunReportToPdf(reportData, startDate, buildingName, buildingId, reportType != MaintenanceReportType.SummaryReport);
+            return RunReportToPdf(reportData, startDate, buildingName, reportType != MaintenanceReportType.SummaryReport);
         }
 
         private List<PervasiveAccount> LoadAccountValues(int periodNumber, string dataPath, string[] accountNumbers)
@@ -150,13 +150,13 @@ namespace Astrodon.Reports.MaintenanceReport
             byte[] report = null;
 
             Dictionary<string, IEnumerable> reportData = new Dictionary<string, IEnumerable>();
-            Dictionary<string, object> reportParams = new Dictionary<string, object>();
+            Dictionary<string, string> reportParams = new Dictionary<string, string>();
 
             string period = dDate.ToString("MMM yyyy");
 
             reportParams.Add("Period", period);
             reportParams.Add("BuildingName", buildingName);
-            reportParams.Add("DetailedReport", detailedReport);
+            reportParams.Add("DetailedReport", detailedReport ? "true" : "false");
 
             reportData.Add("MaintenanceReport", data);
 

@@ -2675,7 +2675,7 @@
                         </TablixMember>
                         <TablixMember>
                           <Visibility>
-                            <Hidden>=Parameters!DetailedReport.Value</Hidden>
+                            <Hidden>=Parameters!DetailedReport.Value = "true"</Hidden>
                           </Visibility>
                           <KeepWithGroup>Before</KeepWithGroup>
                         </TablixMember>
@@ -3331,7 +3331,7 @@
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="DetailedReport">
-      <DataType>Boolean</DataType>
+      <DataType>String</DataType>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
   </ReportParameters>
