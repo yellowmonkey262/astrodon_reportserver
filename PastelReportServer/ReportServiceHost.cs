@@ -31,6 +31,16 @@ namespace PastelReportServer
                 smb.MetadataExporter.PolicyVersion = PolicyVersion.Policy15;
                 host.Description.Behaviors.Add(smb);
 
+                // Add MEX endpoint
+                host.AddServiceEndpoint(
+                  ServiceMetadataBehavior.MexContractName,
+                  MetadataExchangeBindings.CreateMexHttpBinding(),
+                  "mex"
+                );
+
+                // Add application endpoint
+                host.AddServiceEndpoint(typeof(IReportService), new WSHttpBinding(), "");
+
                 // Open the ServiceHost to start listening for messages. Since
                 // no endpoints are explicitly configured, the runtime will create
                 // one endpoint per base address for each service contract implemented

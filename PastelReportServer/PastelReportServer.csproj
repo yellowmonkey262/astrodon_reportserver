@@ -31,6 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\Astrodon_Desktop\packages\EntityFramework.6.1.3\lib\net40\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\Astrodon_Desktop\packages\EntityFramework.6.1.3\lib\net40\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.ReportViewer.Common, Version=13.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\DLL\ReportViewer\Microsoft.ReportViewer.Common.dll</HintPath>
@@ -52,7 +60,9 @@
       <HintPath>..\..\DLL\ReportViewer\Microsoft.ReportViewer.WebForms.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -62,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataContracts\MaintenanceReportType.cs" />
     <Compile Include="ReportServiceHost.cs" />
     <Compile Include="Impersonation.cs" />
     <Compile Include="IReportService.cs" />
@@ -75,9 +86,12 @@
     <Compile Include="Reports\LevyRoll\LevyRollReport.cs" />
     <Compile Include="Reports\LevyRoll\PeriodDataItem.cs" />
     <Compile Include="Reports\LevyRoll\SundryDataItem.cs" />
+    <Compile Include="Reports\MaintenanceReport\MaintenanceReport.cs" />
     <Compile Include="Reports\PervasiveDataItem.cs" />
     <Compile Include="Reports\RdlcHelper.cs" />
     <Compile Include="Reports\ReportDataBase.cs" />
+    <Compile Include="Reports\SupplierReport\SupplierReport.cs" />
+    <Compile Include="Reports\SupplierReport\SupplierReportDataItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.LevyRollDataItem.datasource" />
@@ -86,6 +100,7 @@
     <EmbeddedResource Include="Reports\Scripts\PeriodParameters.sql" />
     <EmbeddedResource Include="Reports\Scripts\LevyRollAllCustomers.sql" />
     <EmbeddedResource Include="Reports\Scripts\LevyRoll.sql" />
+    <EmbeddedResource Include="Reports\SupplierReport\SupplierReport.rdlc" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.SundryDataItem.datasource" />
@@ -98,6 +113,17 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Reports\LevyRoll\LevyRollReport.rdlc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Astrodon_Desktop\Astrodon.Data\Astrodon.Data.csproj">
+      <Project>{89422917-7104-43aa-b124-bccabf3c733b}</Project>
+      <Name>Astrodon.Data</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <None Include="Properties\DataSources\Astrodon.Reports.SupplierReport.SupplierReportDataItem.datasource" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Astrodon.DataContracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -7,11 +8,17 @@ using System.Text;
 
 namespace PastelDataService
 {
-    // NOTE: You can use the "Rename" command on the "Refactor" menu to change the interface name "IReportService" in both code and config file together.
     [ServiceContract]
     public interface IReportService
     {
         [OperationContract]
         byte[] LevyRollReport(DateTime processMonth, string buildingName, string dataPath);
+
+        [OperationContract]
+        byte[] SupplierReport(string sqlConnectionString, DateTime processMonth);
+
+        [OperationContract]
+        byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType, DateTime processMonth, string buildingName, string dataPath);
+
     }
 }

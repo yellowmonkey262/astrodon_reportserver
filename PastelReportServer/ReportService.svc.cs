@@ -8,6 +8,10 @@ using System.Security.Principal;
 using System.ServiceModel;
 using System.ServiceModel.Activation;
 using System.Text;
+using Astrodon.DataContracts;
+using Astrodon.Data;
+using Astrodon.Reports.MaintenanceReport;
+using Astrodon.Reports.SupplierReport;
 
 namespace PastelDataService
 {
@@ -19,6 +23,28 @@ namespace PastelDataService
         {
             var lr = new LevyRollReport();
             return lr.RunReport(processMonth, buildingName, dataPath);
+        }
+
+        public byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType, DateTime processMonth, string buildingName, string dataPath)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new MaintenanceReport(dc);
+
+                return rp.RunReport(reportType, processMonth, buildingName, dataPath);
+                
+            }
+        }
+
+
+        public byte[] SupplierReport(string sqlConnectionString, DateTime processMonth)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new SupplierReport(dc);
+
+                return rp.RunReport(processMonth);
+            }
         }
     }
 }
