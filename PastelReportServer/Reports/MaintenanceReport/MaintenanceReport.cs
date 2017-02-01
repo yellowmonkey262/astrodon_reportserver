@@ -73,7 +73,7 @@ namespace Astrodon.Reports.MaintenanceReport
             foreach(var dataItem in reportData)
                 dataItem.LoadBudget(accountList);
 
-            return RunReportToPdf(reportData, startDate, buildingName, reportType != MaintenanceReportType.SummaryReport);
+            return RunReportToPdf(reportData, startDate, buildingName, reportType == MaintenanceReportType.SummaryReport);
         }
 
         private List<PervasiveAccount> LoadAccountValues(int periodNumber, string dataPath, string[] accountNumbers)

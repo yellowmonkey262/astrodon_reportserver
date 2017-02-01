@@ -39,7 +39,7 @@ namespace PastelReportServer
                 );
 
                 // Add application endpoint
-                host.AddServiceEndpoint(typeof(IReportService), new WSHttpBinding(), "");
+                host.AddServiceEndpoint(typeof(IReportService), new BasicHttpBinding(BasicHttpSecurityMode.None), "");
 
                 // Open the ServiceHost to start listening for messages. Since
                 // no endpoints are explicitly configured, the runtime will create

@@ -24,11 +24,19 @@ namespace Astrodon.Reports.SupplierReport
             DateTime endDate = startDate.AddMonths(1).AddSeconds(-1);
 
             var q = from s in _dataContext.SupplierSet
-                    from m in _dataContext.MaintenanceSet
-                    join bm in _dataContext.BuildingMaintenanceConfigurationSet on m.BuildingMaintenanceConfigurationId equals bm.BuildingId
-                    join b in _dataContext.tblBuildings on bm.BuildingId equals b.id
+                    from m in s.Maintenance
                     where m.DateLogged >= startDate && m.DateLogged <= endDate
-                    group m by new { s.id, s.CompanyName, s.CompanyRegistration, s.ContactPerson, s.EmailAddress, s.ContactNumber, s.BlackListed, b.Building } into grouped
+                    group m by new
+                    {
+                        s.id,
+                        s.CompanyName,
+                        s.CompanyRegistration,
+                        s.ContactPerson,
+                        s.EmailAddress,
+                        s.ContactNumber,
+                        s.BlackListed,
+                        m.BuildingMaintenanceConfiguration.Building.Building
+                    } into grouped
                     select new SupplierReportDataItem
                     {
                         SupplierId = grouped.Key.id,
@@ -42,7 +50,6 @@ namespace Astrodon.Reports.SupplierReport
                         LastUsed = grouped.Max(m => m.DateLogged),
                         Projects = grouped.Count()
                     };
-
 
             var reportData = q.OrderBy(a => a.CompanyName).ToList();
             if (reportData.Count == 0)
