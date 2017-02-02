@@ -23,35 +23,34 @@ namespace Astrodon.Reports.SupplierReport
             DateTime startDate = new DateTime(processMonth.Year, processMonth.Month, processMonth.Day);
             DateTime endDate = startDate.AddMonths(1).AddSeconds(-1);
 
-            var q = from s in _dataContext.SupplierSet
-                    from m in s.Maintenance
-                    where m.DateLogged >= startDate && m.DateLogged <= endDate
-                    group m by new
-                    {
-                        s.id,
-                        s.CompanyName,
-                        s.CompanyRegistration,
-                        s.ContactPerson,
-                        s.EmailAddress,
-                        s.ContactNumber,
-                        s.BlackListed,
-                        m.BuildingMaintenanceConfiguration.Building.Building
-                    } into grouped
-                    select new SupplierReportDataItem
-                    {
-                        SupplierId = grouped.Key.id,
-                        CompanyName = grouped.Key.CompanyName,
-                        Registration = grouped.Key.CompanyRegistration,
-                        ContactPerson = grouped.Key.ContactPerson,
-                        Email = grouped.Key.EmailAddress,
-                        Phone = grouped.Key.ContactNumber,
-                        BlackList = grouped.Key.BlackListed ? "Yes" : "No",
-                        Building = grouped.Key.Building,
-                        LastUsed = grouped.Max(m => m.DateLogged),
-                        Projects = grouped.Count()
-                    };
+            var reportData = (from s in _dataContext.SupplierSet
+                              from m in s.Maintenance
+                              where m.DateLogged >= startDate && m.DateLogged <= endDate
+                              group m by new
+                              {
+                                  s.id,
+                                  s.CompanyName,
+                                  s.CompanyRegistration,
+                                  s.ContactPerson,
+                                  s.EmailAddress,
+                                  s.ContactNumber,
+                                  s.BlackListed,
+                                  m.BuildingMaintenanceConfiguration.Building.Building
+                              } into grouped
+                              select new SupplierReportDataItem
+                              {
+                                  SupplierId = grouped.Key.id,
+                                  CompanyName = grouped.Key.CompanyName,
+                                  Registration = grouped.Key.CompanyRegistration,
+                                  ContactPerson = grouped.Key.ContactPerson,
+                                  Email = grouped.Key.EmailAddress,
+                                  Phone = grouped.Key.ContactNumber,
+                                  BlackList = grouped.Key.BlackListed ? "Yes" : "No",
+                                  Building = grouped.Key.Building,
+                                  LastUsed = grouped.Max(m => m.DateLogged),
+                                  Projects = grouped.Count()
+                              }).OrderBy(a => a.CompanyName).ToList();
 
-            var reportData = q.OrderBy(a => a.CompanyName).ToList();
             if (reportData.Count == 0)
                 return null;
 
@@ -72,14 +71,12 @@ namespace Astrodon.Reports.SupplierReport
 
             reportData.Add("SupplierData", data);
 
-            using (RdlcHelper rdlcHelper = new RdlcHelper(rdlcPath,
-                                                        reportData,
-                                                        reportParams))
+            using (RdlcHelper rdlcHelper = new RdlcHelper(rdlcPath, reportData, reportParams))
             {
-
                 rdlcHelper.Report.EnableExternalImages = true;
                 report = rdlcHelper.GetReportAsFile();
             }
+
             return report;
         }
     }
