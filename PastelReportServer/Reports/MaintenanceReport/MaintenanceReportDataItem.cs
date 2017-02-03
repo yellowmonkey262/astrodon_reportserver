@@ -65,7 +65,7 @@ namespace Astrodon.Reports.MaintenanceReport
 
         public void LoadBudget(List<PervasiveAccount> accountList)
         {
-            var itm = accountList.Where(a => a.AccNumber == PastelAccountNumber).FirstOrDefault();
+            var itm = accountList.FirstOrDefault(a => a.AccNumber == PastelAccountNumber);
             if(itm != null)
             {
                 Budget = itm.Budget;

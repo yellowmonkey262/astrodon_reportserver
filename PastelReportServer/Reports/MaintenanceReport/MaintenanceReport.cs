@@ -10,6 +10,7 @@ using Astrodon.Reports.LevyRoll;
 using System.Data;
 using System.Diagnostics;
 using System.Collections;
+using Astrodon.Data.MaintenanceData;
 
 namespace Astrodon.Reports.MaintenanceReport
 {
@@ -66,12 +67,19 @@ namespace Astrodon.Reports.MaintenanceReport
 
             var accountNumbers = reportData.Select(a => a.PastelAccountNumber).Distinct().ToArray();
             var periodNumber = GetBuildingPeriod(processMonth, dataPath);
-            var accountList = LoadAccountValues(periodNumber,dataPath, accountNumbers);
+            var accountList = LoadAccountValues(periodNumber, dataPath, accountNumbers);
 
             //merge account data with account list
+            string currentLedgerAccount = "";
 
-            foreach(var dataItem in reportData)
-                dataItem.LoadBudget(accountList);
+            foreach (var dataItem in reportData)
+            {
+                if (dataItem.PastelAccountNumber != currentLedgerAccount)
+                {
+                    dataItem.LoadBudget(accountList);
+                    currentLedgerAccount = dataItem.PastelAccountNumber;
+                }
+            }
 
             return RunReportToPdf(reportData, startDate, buildingName, reportType == MaintenanceReportType.SummaryReport);
         }
@@ -160,11 +168,8 @@ namespace Astrodon.Reports.MaintenanceReport
 
             reportData.Add("MaintenanceReport", data);
 
-            using (RdlcHelper rdlcHelper = new RdlcHelper(rdlcPath,
-                                                        reportData,
-                                                        reportParams))
+            using (RdlcHelper rdlcHelper = new RdlcHelper(rdlcPath, reportData, reportParams))
             {
-
                 rdlcHelper.Report.EnableExternalImages = true;
                 report = rdlcHelper.GetReportAsFile();
             }
