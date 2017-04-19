@@ -21,6 +21,7 @@ namespace Astrodon.Reports.LevyRoll
             Sewer = ReadDecimal(row, "Sewer");
             Payments = ReadDecimal(row, "Payments");
             Sundries = ReadDecimal(row, "Sundries");
+            CSOS = ReadDecimal(row, "CSOS");
 
             OpeningBalance = CalcOpening(period,row);
             ClosingBalance = CalcClosing(period, row);
@@ -117,6 +118,9 @@ namespace Astrodon.Reports.LevyRoll
         public decimal Sundries { get; set; }
         public string SundriesStr { get { return FormatCurrency(Sundries); } }
 
+        public decimal CSOS { get; set; }
+        public string CSOSStr { get { return FormatCurrency(CSOS); } }
+
         public decimal ClosingBalance { get; set; }
         public string ClosingBalanceStr { get { return FormatCurrency(ClosingBalance); } }
 
@@ -124,7 +128,7 @@ namespace Astrodon.Reports.LevyRoll
         {
             get
             {
-                return OpeningBalance + Levy + Water + Electricity + Interest + Legal + Sewer + Payments + Sundries;
+                return OpeningBalance + Levy + Water + Electricity + Interest + Legal + Sewer + Payments + CSOS + Sundries;
             }
         }
         public string DueStr { get { return FormatCurrency(Due); } }

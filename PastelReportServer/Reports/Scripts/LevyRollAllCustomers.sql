@@ -8,7 +8,8 @@
   0.0 as Legal,
   0.0 as Sewer,
   0.0 as Payments,
-  0.0 as Sundries
+  0.0 as Sundries,
+  0.0 as CSOS
 from  [DataSet].CustomerMaster m 
 group by  m.CustomerCode, m.CustomerDesc, BalanceThis01,
   BalanceThis01,BalanceThis02, BalanceThis03, BalanceThis04, BalanceThis05, BalanceThis06, BalanceThis07, BalanceThis08, BalanceThis09, BalanceThis10, BalanceThis11, BalanceThis12,

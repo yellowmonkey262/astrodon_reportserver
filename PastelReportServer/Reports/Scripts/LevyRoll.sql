@@ -11,7 +11,8 @@ select m.CustomerCode, m.CustomerDesc,
   Sum(case WHEN LinkAcc = '1030000'  and Description != 'Interest Charged' then IsNull(AMOUNT,0) else 0 end ) as Legal,
   Sum(case WHEN LinkAcc = '1020000'  and Description != 'Interest Charged' then IsNull(AMOUNT,0) else 0 end ) as Sewer,
   Sum(case WHEN LinkAcc like '84%'  and Description != 'Interest Charged' then IsNull(AMOUNT,0) else 0 end ) as Payments,
-  Sum(case WHEN (LinkAcc in ('1000000','1045000','1010000','1000000','1030000','1020000')
+  Sum(case WHEN LinkAcc = '1085000'  and Description != 'Interest Charged' then IsNull(AMOUNT,0) else 0 end ) as CSOS,
+  Sum(case WHEN (LinkAcc in ('1000000','1045000','1010000','1000000','1030000','1020000','1085000')
              or LinkAcc like '84%' or Description = 'Interest Charged' ) then 0 else AMOUNT end) as Sundries
   
 from [DataSet].CustomerMaster m left join 
