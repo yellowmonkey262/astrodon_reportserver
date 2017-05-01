@@ -18,5 +18,8 @@ namespace Astrodon.Reports.SupplierReport
         public int Projects { get;  set; }
         public string Registration { get;  set; }
         public string Building { get;  set; }
+        public string BankName { get;  set; }
+        public string AccountNumber { get;  set; }
+        public decimal Amount { get;  set; }
     }
 }

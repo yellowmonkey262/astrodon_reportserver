@@ -30,7 +30,7 @@ namespace Desktop.Lib.Pervasive
             return result;
         }
 
-        public static DataTable FetchPervasiveData(string dataSet, string sql,OdbcParameter param1)
+        public static DataTable FetchPervasiveData(string sql,OdbcParameter param1)
         {
             DataTable table = new DataTable();
             string strAccessConn = @"Dsn="+odbcName+";";
@@ -49,6 +49,19 @@ namespace Desktop.Lib.Pervasive
                 }
             }
             return table;
+        }
+
+        public static DataTable FetchPervasiveData(string sql)
+        {
+            return FetchPervasiveData(sql, null);
+        }
+
+        public static string SetDataSource(string sqlQuery, string dataPath)
+        {
+            if (System.AppDomain.CurrentDomain.FriendlyName == "SelfHosted.exe" || System.Diagnostics.Debugger.IsAttached)
+                return sqlQuery = sqlQuery.Replace("[DataSet].", "");
+
+            return sqlQuery.Replace("[DataSet].", "PAS11" + dataPath + ".");
         }
     }
 }

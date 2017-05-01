@@ -27,11 +27,15 @@ namespace Astrodon.Reports.MaintenanceReport
             DateTime startDate = new DateTime(processMonth.Year, processMonth.Month, 1);
             DateTime endDate = startDate.AddMonths(1).AddSeconds(-1);
 
+            //maintenance records
             var q = from m in _dataContext.MaintenanceSet
                                           .Include(c => c.BuildingMaintenanceConfiguration)
                                           .Include(d => d.Requisition)
                                           .Include(e => e.Requisition.Supplier)
-                    where m.DateLogged >= startDate && m.DateLogged <= endDate
+                    where m.Requisition.trnDate >= startDate 
+                       && m.Requisition.trnDate <= endDate
+                       && m.Requisition.building == buildingId
+                       && m.Requisition.paid == true
                     select new MaintenanceReportDataItem()
                     {
                         MaintenanceClassificationType = m.BuildingMaintenanceConfiguration.MaintenanceClassificationType,
@@ -60,10 +64,65 @@ namespace Astrodon.Reports.MaintenanceReport
                         Amount = m.TotalAmount
                     };
 
-            var reportData = q.OrderBy(a => a.MaintenanceClassificationType).ThenBy(a => a.Unit).ThenBy(a => a.MaintenanceType).ThenBy(a => a.Supplier).ToList();
+            var reportData = q.ToList();  
+
+            //now select all requisitions not already in the list
+
+            var dbList = (from r in _dataContext.tblRequisitions
+                     join m in _dataContext.MaintenanceSet on r.id equals m.RequisitionId into maint
+                     from g in maint.DefaultIfEmpty()
+                     where r.trnDate >= startDate
+                           && r.trnDate <= endDate
+                           && r.building == buildingId
+                           && r.paid == true
+                           && g == null
+                     select r).ToList();
+
+            //filter q2 to maintenance only ledger accounts
+            //remove all non maintenance transactions
+            List<UnlinkedRequisitions> reqList = new List<UnlinkedRequisitions>();
+            foreach (var config in _dataContext.BuildingMaintenanceConfigurationSet.Where(a => a.BuildingId == buildingId).ToList())
+            {
+                foreach(var itm in dbList.Where(a => a.LedgerAccountNumber == config.PastelAccountNumber))
+                {
+                    reqList.Add(new UnlinkedRequisitions() { BuildingMaintenanceConfiguration = config, Requisition = itm });
+                }
+            }
+
+            //union the first query with the second one
+
+            reportData.AddRange(reqList.Select(r => new MaintenanceReportDataItem()
+            {
+                MaintenanceClassificationType = r.BuildingMaintenanceConfiguration.MaintenanceClassificationType,
+                Unit = string.Empty,
+                MaintenanceType = r.BuildingMaintenanceConfiguration.Name,
+                PastelAccountNumber = r.BuildingMaintenanceConfiguration.PastelAccountNumber,
+                PastelAccountName = r.BuildingMaintenanceConfiguration.PastelAccountName,
+                MaintenanceDate = r.Requisition.trnDate,
+                Description = string.Empty,
+                Supplier = string.Empty,
+                CompanyReg = string.Empty,
+                VatNumber = string.Empty,
+                ContactPerson = string.Empty,
+                EmailAddress = string.Empty,
+                ContactNumber = string.Empty,
+                Bank = r.Requisition.BankName,
+                Branch = r.Requisition.BranchName,
+                BranchCode = r.Requisition.BranchCode,
+                AccountNumber = r.Requisition.AccountNumber,
+                InvoiceNumber = string.Empty,
+                WarrantyDuration =null,
+                WarrantyType =null,
+                WarrantyNotes = string.Empty,
+                WarrantyExpires = null,
+                SerialNumber = string.Empty,
+                Amount = r.Requisition.amount
+            }));
 
             if (reportData.Count <= 0)
                 return null;
+
+            reportData = reportData.OrderBy(a => a.MaintenanceClassificationType).ThenBy(a => a.Unit).ThenBy(a => a.MaintenanceType).ThenBy(a => a.Supplier).ToList();
 
             var accountNumbers = reportData.Select(a => a.PastelAccountNumber).Distinct().ToArray();
             var periodNumber = GetBuildingPeriod(processMonth, dataPath);
@@ -108,7 +167,7 @@ namespace Astrodon.Reports.MaintenanceReport
             string qry = "select * from [DataSet].LedgerMaster where AccNumber " + accQry;
 
             qry = SetDataSource(qry, dataPath);
-            var accountData = PervasiveSqlUtilities.FetchPervasiveData("", qry, null);
+            var accountData = PervasiveSqlUtilities.FetchPervasiveData( qry, null);
             List<PervasiveAccount> accountList = new List<PervasiveAccount>();
             foreach (DataRow row in accountData.Rows)
             {
@@ -124,7 +183,7 @@ namespace Astrodon.Reports.MaintenanceReport
 
             string sqlPeriodConfig = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.PeriodParameters.sql");
             sqlPeriodConfig = SetDataSource(sqlPeriodConfig, dataPath);
-            var periodData = PervasiveSqlUtilities.FetchPervasiveData("", sqlPeriodConfig, null);
+            var periodData = PervasiveSqlUtilities.FetchPervasiveData( sqlPeriodConfig, null);
             PeriodDataItem periodItem = null;
             foreach (DataRow row in periodData.Rows)
             {
@@ -145,10 +204,7 @@ namespace Astrodon.Reports.MaintenanceReport
 
         private string SetDataSource(string sqlQuery, string dataPath)
         {
-            if (!Debugger.IsAttached)
-                return sqlQuery.Replace("[DataSet].", "PAS11" + dataPath + ".");
-            else
-                return sqlQuery = sqlQuery.Replace("[DataSet].", "");
+            return PervasiveSqlUtilities.SetDataSource(sqlQuery, dataPath);
         }
 
 
@@ -175,5 +231,11 @@ namespace Astrodon.Reports.MaintenanceReport
             }
             return report;
         }
+    }
+
+    class UnlinkedRequisitions
+    {
+        public tblRequisition Requisition { get; set; }
+        public BuildingMaintenanceConfiguration BuildingMaintenanceConfiguration { get; set; }
     }
 }

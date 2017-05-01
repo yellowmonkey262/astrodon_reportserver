@@ -12,13 +12,13 @@ namespace Astrodon.Reports.LevyRoll
 {
     public class LevyRollReport
     {
-        public byte[] RunReport(DateTime processMonth, string buildingName, string dataPath)
+        public byte[] RunReport(DateTime processMonth, string buildingName, string dataPath, bool includeSundries)
         {
-            DateTime dDate = new DateTime( processMonth.Year,processMonth.Month,1);
+            DateTime dDate = new DateTime(processMonth.Year, processMonth.Month, 1);
 
             string sqlPeriodConfig = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.PeriodParameters.sql");
-            sqlPeriodConfig = SetDataSource(sqlPeriodConfig,dataPath);
-            var periodData = PervasiveSqlUtilities.FetchPervasiveData("", sqlPeriodConfig, null);
+            sqlPeriodConfig = SetDataSource(sqlPeriodConfig, dataPath);
+            var periodData = PervasiveSqlUtilities.FetchPervasiveData(sqlPeriodConfig, null);
             PeriodDataItem periodItem = null;
             foreach (DataRow row in periodData.Rows)
             {
@@ -38,14 +38,14 @@ namespace Astrodon.Reports.LevyRoll
 
             //run the main report query
             string sqlQuery = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.LevyRollAllCustomers.sql");
-            sqlQuery = SetDataSource(sqlQuery,dataPath);
+            sqlQuery = SetDataSource(sqlQuery, dataPath);
 
-            var allMasterAccounts = PervasiveSqlUtilities.FetchPervasiveData("", sqlQuery, null);
+            var allMasterAccounts = PervasiveSqlUtilities.FetchPervasiveData(sqlQuery, null);
 
             sqlQuery = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.LevyRoll.sql");
             sqlQuery = SetDataSource(sqlQuery, dataPath);
 
-            var reportDB = PervasiveSqlUtilities.FetchPervasiveData("", sqlQuery, new OdbcParameter("@PPeriod", period));
+            var reportDB = PervasiveSqlUtilities.FetchPervasiveData(sqlQuery, new OdbcParameter("@PPeriod", period));
 
             List<LevyRollDataItem> data = new List<LevyRollDataItem>();
             foreach (DataRow row in reportDB.Rows)
@@ -63,16 +63,19 @@ namespace Astrodon.Reports.LevyRoll
                 }
             }
 
-            string sundriesQry = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.Sundries.sql");
-            sundriesQry = SetDataSource(sundriesQry,dataPath);
-            reportDB = PervasiveSqlUtilities.FetchPervasiveData("", sundriesQry, new OdbcParameter("@PPeriod", period));
             List<SundryDataItem> sundries = new List<SundryDataItem>();
-            foreach (DataRow row in reportDB.Rows)
+            if (includeSundries)
             {
-                sundries.Add(new SundryDataItem(row));
+                string sundriesQry = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.Sundries.sql");
+                sundriesQry = SetDataSource(sundriesQry, dataPath);
+                reportDB = PervasiveSqlUtilities.FetchPervasiveData(sundriesQry, new OdbcParameter("@PPeriod", period));
+                foreach (DataRow row in reportDB.Rows)
+                {
+                    sundries.Add(new SundryDataItem(row));
+                }
             }
 
-           return RunReportToPdf(data, sundries,dDate,buildingName);
+            return RunReportToPdf(data, sundries, dDate, buildingName);
         }
 
         private byte[] RunReportToPdf(List<LevyRollDataItem> data, List<SundryDataItem> sundries, DateTime dDate, string building)
@@ -90,6 +93,10 @@ namespace Astrodon.Reports.LevyRoll
 
             reportData.Add("LevyRollMain", data);
             reportData.Add("dsLevySundries", sundries);
+            if (sundries.Count > 0)
+                reportParams.Add("IncludeSundries", "true");
+            else
+                reportParams.Add("IncludeSundries", "false");
 
             using (RdlcHelper rdlcHelper = new RdlcHelper(rdlcPath,
                                                         reportData,
@@ -104,10 +111,7 @@ namespace Astrodon.Reports.LevyRoll
 
         private string SetDataSource(string sqlQuery, string dataPath)
         {
-            if (!Debugger.IsAttached)
-                return sqlQuery.Replace("[DataSet].", "PAS11" + dataPath + ".");
-            else
-                return sqlQuery = sqlQuery.Replace("[DataSet].", "");
+            return PervasiveSqlUtilities.SetDataSource(sqlQuery, dataPath);
         }
     }
 }

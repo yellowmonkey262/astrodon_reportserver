@@ -2298,6 +2298,9 @@
         <Height>2.49729cm</Height>
         <Width>25.89799cm</Width>
         <ZIndex>1</ZIndex>
+        <Visibility>
+          <Hidden>=Parameters!IncludeSundries.Value = "false"</Hidden>
+        </Visibility>
         <Style>
           <Border>
             <Style>None</Style>
@@ -2903,6 +2906,10 @@
       <DataType>String</DataType>
       <Nullable>true</Nullable>
       <AllowBlank>true</AllowBlank>
+      <Prompt>ReportParameter1</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="IncludeSundries">
+      <DataType>String</DataType>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
   </ReportParameters>

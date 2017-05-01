@@ -12,6 +12,8 @@ using Astrodon.DataContracts;
 using Astrodon.Data;
 using Astrodon.Reports.MaintenanceReport;
 using Astrodon.Reports.SupplierReport;
+using Astrodon.DataContracts.Maintenance;
+using Astrodon.DataProcessor;
 
 namespace PastelDataService
 {
@@ -19,10 +21,10 @@ namespace PastelDataService
     // NOTE: In order to launch WCF Test Client for testing this service, please select ReportService.svc or ReportService.svc.cs at the Solution Explorer and start debugging.
     public class ReportService : IReportService
     {
-        public byte[] LevyRollReport(DateTime processMonth, string buildingName, string dataPath)
+        public byte[] LevyRollReport(DateTime processMonth, string buildingName, string dataPath, bool includeSundries)
         {
             var lr = new LevyRollReport();
-            return lr.RunReport(processMonth, buildingName, dataPath);
+            return lr.RunReport(processMonth, buildingName, dataPath, includeSundries);
         }
 
         public byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType, DateTime processMonth, int buildingId, string buildingName, string dataPath)
@@ -35,15 +37,26 @@ namespace PastelDataService
                 
             }
         }
+      
 
-
-        public byte[] SupplierReport(string sqlConnectionString, DateTime processMonth)
+        public byte[] SupplierReport(string sqlConnectionString, DateTime fromDate, DateTime toDate, int buildingId)
         {
             using (var dc = new DataContext(sqlConnectionString))
             {
                 var rp = new SupplierReport(dc);
 
-                return rp.RunReport(processMonth);
+                return rp.RunReport(fromDate,toDate,buildingId);
+            }
+        }
+
+
+        public ICollection<PastelMaintenanceTransaction> MissingMaintenanceRecordsGet(string sqlConnectionString, int buildingId)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new MaintenanceProcessor(dc, buildingId);
+
+                return rp.MissingMaintenanceRecordsGet();
             }
         }
     }
