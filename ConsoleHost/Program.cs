@@ -1,4 +1,5 @@
-﻿using PastelReportServer;
+﻿using Astrodon.DataProcessor;
+using PastelReportServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,14 @@ namespace SelfHosted
 
         static void Main(string[] args)
         {
-          //  TestMissingMaintenance();
+        
 
             ReportServiceHost host = new ReportServiceHost();
             Console.WriteLine("Service is running");
+
+            var processorThread = new ProcessorThread();
+            Console.WriteLine("ProcessorThread is running");
+
             Console.ReadLine();
             host.Terminated = true;
         }

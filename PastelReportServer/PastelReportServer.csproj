@@ -74,8 +74,11 @@
   <ItemGroup>
     <Compile Include="DataContracts\MaintenanceReportType.cs" />
     <Compile Include="DataContracts\Maintenance\PastelMaintenanceTransaction.cs" />
+    <Compile Include="DataContracts\PaymentTransaction.cs" />
     <Compile Include="DataContracts\PervasiveItem.cs" />
     <Compile Include="DataProcessor\MaintenanceProcessor.cs" />
+    <Compile Include="DataProcessor\ProcessorThread.cs" />
+    <Compile Include="DataProcessor\RequisitionProcessor.cs" />
     <Compile Include="ReportServiceHost.cs" />
     <Compile Include="Impersonation.cs" />
     <Compile Include="IReportService.cs" />
@@ -100,6 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="DataProcessor\Scripts\MaintenanceRecordList.sql" />
+    <EmbeddedResource Include="DataProcessor\Scripts\PaymentTransactionList.sql" />
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.LevyRollDataItem.datasource" />
     <Content Include="ReportService.svc" />
     <EmbeddedResource Include="Reports\MaintenanceReport\MaintenanceReport.rdlc" />

@@ -8,6 +8,7 @@ using Desktop.Lib.Pervasive;
 using System.Data;
 using Astrodon.Data.MaintenanceData;
 using System.Data.Entity;
+using Astrodon.DataContracts;
 
 namespace Astrodon.DataProcessor
 {
@@ -62,7 +63,7 @@ namespace Astrodon.DataProcessor
             }
 
             //remove already matched transactions
-            foreach (var req in reqList.Where(a => a.PastelLedgerAutoNumber != null && a.PastelDataPath == _building.DataPath))
+            foreach (var req in reqList.Where(a => a.PastelLedgerAutoNumber != null))
             {
                 var matched = pastelTransactions.Where(a => a.AutoNumber == req.PastelLedgerAutoNumber && a.DataPath == req.PastelDataPath).SingleOrDefault();
                 if (matched != null)
@@ -77,7 +78,7 @@ namespace Astrodon.DataProcessor
             {
                 var matched = pastelTransactions.Where(a => a.TransactionDate == req.trnDate.Date 
                                                          && a.LedgerAccount == req.LedgerAccountNumber 
-                                                         && a.Amount == req.amount
+                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount)
                                                          && a.AccountType == req.account).FirstOrDefault();
                 if (matched != null)
                 {
@@ -121,6 +122,6 @@ namespace Astrodon.DataProcessor
             return result;
         }
 
-       
+      
     }
 }

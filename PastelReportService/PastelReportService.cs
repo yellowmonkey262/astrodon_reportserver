@@ -1,4 +1,5 @@
-﻿using PastelReportServer;
+﻿using Astrodon.DataProcessor;
+using PastelReportServer;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +14,7 @@ namespace PastelReportService
     public partial class PastelReportService : ServiceBase
     {
         private ReportServiceHost _service;
+        private ProcessorThread _ProcessorThread;
         public PastelReportService()
         {
             InitializeComponent();
@@ -21,11 +23,13 @@ namespace PastelReportService
         protected override void OnStart(string[] args)
         {
             _service = new ReportServiceHost();
+            _ProcessorThread = new ProcessorThread();
         }
 
         protected override void OnStop()
         {
             _service.Terminated = true;
+            _ProcessorThread.Terminated = true;
         }
     }
 }
