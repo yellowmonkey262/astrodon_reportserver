@@ -46,6 +46,8 @@ namespace Astrodon.DataProcessor
 
             pastelTransactions.AddRange(trustTransactions);
 
+            pastelTransactions = pastelTransactions.OrderBy(a => a.TransactionDate).ToList(); //first 500
+
             //load requisitions
             var minDate = pastelTransactions.Min(a => a.TransactionDate).Date;
             var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(1).AddSeconds(-1);
