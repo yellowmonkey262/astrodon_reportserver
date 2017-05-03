@@ -38,7 +38,7 @@ namespace Astrodon.DataProcessor
             var pastelTransactions = FetchPastelMaintTransactions(false);
             var trustTransactions = FetchPastelMaintTransactions(true);
 
-            if (pastelTransactions.Count <= 0 || trustTransactions.Count <= 0)
+            if (pastelTransactions.Count <= 0 && trustTransactions.Count <= 0)
                 return result;
 
             if (pastelTransactions == null)
@@ -110,7 +110,10 @@ namespace Astrodon.DataProcessor
             string dataPath = _building.DataPath;
 
             if (isTrustAccount)//use the trust account
+            {
                 dataPath = _context.tblSettings.First().trust;
+                accountList = "LinkAcc = '" + _building.AccNumber + "'";
+            }
 
             string sqlMaintenanceRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.MaintenanceRecordList.sql");
             sqlMaintenanceRecords = PervasiveSqlUtilities.SetDataSource(sqlMaintenanceRecords, dataPath);

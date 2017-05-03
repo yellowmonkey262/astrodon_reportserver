@@ -14,6 +14,7 @@ using Astrodon.Reports.MaintenanceReport;
 using Astrodon.Reports.SupplierReport;
 using Astrodon.DataContracts.Maintenance;
 using Astrodon.DataProcessor;
+using Astrodon.Reports.RequisitionBatch;
 
 namespace PastelDataService
 {
@@ -21,10 +22,16 @@ namespace PastelDataService
     // NOTE: In order to launch WCF Test Client for testing this service, please select ReportService.svc or ReportService.svc.cs at the Solution Explorer and start debugging.
     public class ReportService : IReportService
     {
-        public byte[] LevyRollReport(DateTime processMonth, string buildingName, string dataPath, bool includeSundries)
+        public byte[] LevyRollReport(DateTime processMonth, string buildingName, string dataPath)
         {
             var lr = new LevyRollReport();
-            return lr.RunReport(processMonth, buildingName, dataPath, includeSundries);
+            return lr.RunReport(processMonth, buildingName, dataPath, true);
+        }
+
+        public byte[] LevyRollExcludeSundries(DateTime processMonth, string buildingName, string dataPath)
+        {
+            var lr = new LevyRollReport();
+            return lr.RunReport(processMonth, buildingName, dataPath, false);
         }
 
         public byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType, DateTime processMonth, int buildingId, string buildingName, string dataPath)
@@ -57,6 +64,16 @@ namespace PastelDataService
                 var rp = new MaintenanceProcessor(dc, buildingId);
 
                 return rp.MissingMaintenanceRecordsGet();
+            }
+        }
+
+        public byte[] RequisitionBatchReport(string sqlConnectionString, int requisitionBatchId)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new RequisitionBatchReport(dc);
+
+                return rp.RunReport(requisitionBatchId);
             }
         }
     }

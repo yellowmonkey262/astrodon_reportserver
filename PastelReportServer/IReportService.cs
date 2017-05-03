@@ -13,7 +13,11 @@ namespace PastelDataService
     public interface IReportService
     {
         [OperationContract]
-        byte[] LevyRollReport(DateTime processMonth, string buildingName, string dataPath, bool includeSundries);
+        byte[] LevyRollReport(DateTime processMonth, string buildingName, string dataPath);
+
+        [OperationContract]
+        byte[] LevyRollExcludeSundries(DateTime processMonth, string buildingName, string dataPath);
+
 
         [OperationContract]
         byte[] SupplierReport(string sqlConnectionString, DateTime fromDate, DateTime toDate, int buildingId);
@@ -23,6 +27,9 @@ namespace PastelDataService
 
         [OperationContract]
         ICollection<PastelMaintenanceTransaction> MissingMaintenanceRecordsGet(string sqlConnectionString, int buildingId);
+
+        [OperationContract]
+        byte[] RequisitionBatchReport(string sqlConnectionString, int requisitionBatchId);
 
     }
 }

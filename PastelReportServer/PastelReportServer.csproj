@@ -98,15 +98,19 @@
     <Compile Include="Reports\PervasiveDataItem.cs" />
     <Compile Include="Reports\RdlcHelper.cs" />
     <Compile Include="Reports\ReportDataBase.cs" />
+    <Compile Include="Reports\RequisitionBatch\RequisitionBatchReportDataItem.cs" />
+    <Compile Include="Reports\RequisitionBatch\RequisitionBatchReport.cs" />
     <Compile Include="Reports\SupplierReport\SupplierReport.cs" />
     <Compile Include="Reports\SupplierReport\SupplierReportDataItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="DataProcessor\Scripts\MaintenanceRecordList.sql" />
     <EmbeddedResource Include="DataProcessor\Scripts\PaymentTransactionList.sql" />
+    <EmbeddedResource Include="DataProcessor\Scripts\TrustPaymentTransactionList.sql" />
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.LevyRollDataItem.datasource" />
     <Content Include="ReportService.svc" />
     <EmbeddedResource Include="Reports\MaintenanceReport\MaintenanceReport.rdlc" />
+    <EmbeddedResource Include="Reports\RequisitionBatch\RequisitionReport.rdlc" />
     <EmbeddedResource Include="Reports\Scripts\Sundries.sql" />
     <EmbeddedResource Include="Reports\Scripts\PeriodParameters.sql" />
     <EmbeddedResource Include="Reports\Scripts\LevyRollAllCustomers.sql" />
@@ -139,6 +143,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\Astrodon.Reports.MaintenanceReport.MaintenanceReportDataItem.datasource" />
+    <None Include="Properties\DataSources\Astrodon.Reports.RequisitionBatch.RequisitionBatchReportDataItem.datasource" />
     <None Include="Properties\DataSources\Astrodon.Reports.SupplierReport.SupplierReportDataItem.datasource" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

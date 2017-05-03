@@ -19,7 +19,7 @@ namespace Astrodon.DataProcessor
 
         public ProcessorThread()
         {
-            _NextRun = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 22, 0, 0);
+            _NextRun = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0).AddHours(1);
             if (System.Diagnostics.Debugger.IsAttached)
                 _NextRun = DateTime.Now.AddSeconds(5);
 
@@ -38,7 +38,8 @@ namespace Astrodon.DataProcessor
                 {
                     if (DateTime.Now > _NextRun)
                     {
-                        _NextRun = _NextRun.AddDays(1);
+                        _NextRun = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0).AddHours(1);
+
                         ProcessBuildingMatches();
                         DataContext.HouseKeepSystemLog();
                     }

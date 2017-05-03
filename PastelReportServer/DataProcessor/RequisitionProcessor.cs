@@ -28,10 +28,20 @@ namespace Astrodon.DataProcessor
             List<PaymentTransaction> result = new List<PaymentTransaction>();
             string dataPath = _building.DataPath;
 
-            if (isTrustAccount)//use the trust account
-                dataPath = _context.tblSettings.First().trust;
+            string sqlPaymentRecords = string.Empty;
 
-            string sqlPaymentRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.PaymentTransactionList.sql");
+            if (isTrustAccount)//use the trust account
+            {
+                dataPath = _context.tblSettings.First().trust;
+                //accountList = "LinkAcc = '" + _building.AccNumber + "'";
+                sqlPaymentRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.TrustPaymentTransactionList.sql");
+                sqlPaymentRecords = sqlPaymentRecords.Replace("[TRUSTACCOUNT]", _building.AccNumber);
+            }
+            else
+            {
+               sqlPaymentRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.PaymentTransactionList.sql");
+            }
+
             sqlPaymentRecords = PervasiveSqlUtilities.SetDataSource(sqlPaymentRecords, dataPath);
 
             foreach (DataRow row in PervasiveSqlUtilities.FetchPervasiveData(sqlPaymentRecords).Rows)
@@ -42,12 +52,14 @@ namespace Astrodon.DataProcessor
 
         public int LinkPayments()
         {
+           
+
             int result = 0;
             //step 1 find all payments in pastel
             var pastelTransactions = FetchPaymentTransactions(false);
             var trustTransactions = FetchPaymentTransactions(true);
 
-            if (pastelTransactions.Count <= 0 || trustTransactions.Count <= 0)
+            if (pastelTransactions.Count <= 0 && trustTransactions.Count <= 0)
                 return 0;
 
             if (pastelTransactions == null)
@@ -97,7 +109,10 @@ namespace Astrodon.DataProcessor
                 {
                     req.PaymentLedgerAutoNumber = matched.AutoNumber;
                     req.PaymentDataPath = matched.DataPath;
-                    req.paid = true;
+                    if (_buildingId == 364) //only for testing maintenance 
+                    {
+                        req.paid = true;
+                    }
                     result++;
                     pastelTransactions.Remove(matched);
                 }
