@@ -36,17 +36,12 @@ namespace Astrodon.DataProcessor
 
             //load pastel transaction list
             var pastelTransactions = FetchPastelMaintTransactions(false);
-            var trustTransactions = FetchPastelMaintTransactions(true);
 
-            if (pastelTransactions.Count <= 0 && trustTransactions.Count <= 0)
+            if (pastelTransactions.Count <= 0)
                 return result;
 
             if (pastelTransactions == null)
                 pastelTransactions = new List<PastelMaintenanceTransaction>();
-
-            pastelTransactions.AddRange(trustTransactions);
-
-            pastelTransactions = pastelTransactions.OrderBy(a => a.TransactionDate).ToList(); //first 500
 
             //load requisitions
             var minDate = pastelTransactions.Min(a => a.TransactionDate).Date;

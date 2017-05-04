@@ -57,15 +57,12 @@ namespace Astrodon.DataProcessor
             int result = 0;
             //step 1 find all payments in pastel
             var pastelTransactions = FetchPaymentTransactions(false);
-            var trustTransactions = FetchPaymentTransactions(true);
 
-            if (pastelTransactions.Count <= 0 && trustTransactions.Count <= 0)
+            if (pastelTransactions.Count <= 0 )
                 return 0;
 
             if (pastelTransactions == null)
                 pastelTransactions = new List<PaymentTransaction>();
-
-            pastelTransactions.AddRange(trustTransactions);
 
             //load requisitions
             var minDate = pastelTransactions.Min(a => a.TransactionDate).Date;
