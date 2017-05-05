@@ -8,14 +8,16 @@ namespace Astrodon.Reports.MaintenanceReport
 {
     public class PervasiveAccount:PervasiveDataItem
     {
-        public PervasiveAccount(DataRow row, int period)
+        public PervasiveAccount(DataRow row, int period, DateTime dt)
         {
             AccNumber = (string)row["AccNumber"];
             ClosingBalance = CalcClosing(period, row);
             Budget = CurrentBudget(period, row);
             BudgetAvailable = CalcBudget(period, row);
+            PeriodMonth = new DateTime(dt.Year, dt.Month,1);
         }
 
+        public DateTime PeriodMonth { get; private set; }
         public string AccNumber { get; private set; }
         public decimal ClosingBalance { get; private set; }
         public decimal Budget { get; private set; }

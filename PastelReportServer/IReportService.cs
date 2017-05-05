@@ -23,7 +23,7 @@ namespace PastelDataService
         byte[] SupplierReport(string sqlConnectionString, DateTime fromDate, DateTime toDate, int buildingId);
 
         [OperationContract]
-        byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType, DateTime processMonth, int buildingId, string buildingName, string dataPath);
+        byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType, DateTime fromDate,DateTime toDate, int buildingId, string buildingName, string dataPath);
 
         [OperationContract]
         ICollection<PastelMaintenanceTransaction> MissingMaintenanceRecordsGet(string sqlConnectionString, int buildingId);

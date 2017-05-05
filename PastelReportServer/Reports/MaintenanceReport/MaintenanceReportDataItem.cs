@@ -11,6 +11,7 @@ namespace Astrodon.Reports.MaintenanceReport
     {
         public string AccountNumber { get;  set; }
         public decimal Amount { get;  set; }
+        public string Paid { get; set; }
         public string Bank { get;  set; }
         public string Branch { get;  set; }
         public string BranchCode { get;  set; }
@@ -33,7 +34,7 @@ namespace Astrodon.Reports.MaintenanceReport
         public DateTime MaintenanceDate { get;  set; }
         public string MaintenanceType { get;  set; }
 
-        public string MaintenanceDisplayName { get { return MaintenanceType + " " + PastelAccountNumber + "-" + PastelAccountName; } }
+        public string MaintenanceDisplayName { get { return MaintenanceType + " " + PastelAccountNumber; } }
 
         public string PastelAccountName { get;  set; }
         public string PastelAccountNumber { get;  set; }
@@ -63,15 +64,6 @@ namespace Astrodon.Reports.MaintenanceReport
         public decimal Balance { get; set; }
         public decimal BudgetAvailable { get; set; }
 
-        public void LoadBudget(List<PervasiveAccount> accountList)
-        {
-            var itm = accountList.FirstOrDefault(a => a.AccNumber == PastelAccountNumber);
-            if(itm != null)
-            {
-                Budget = itm.Budget;
-                Balance = itm.ClosingBalance;
-                BudgetAvailable = itm.BudgetAvailable;
-            }
-        }
+       
     }
 }

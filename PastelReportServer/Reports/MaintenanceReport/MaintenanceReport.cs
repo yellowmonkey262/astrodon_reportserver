@@ -22,10 +22,10 @@ namespace Astrodon.Reports.MaintenanceReport
             _dataContext = dataContext;
         }
 
-        public byte[] RunReport(MaintenanceReportType reportType, DateTime processMonth,int buildingId, string buildingName, string dataPath)
+        public byte[] RunReport(MaintenanceReportType reportType, DateTime fromDate,DateTime toDate,int buildingId, string buildingName, string dataPath)
         {
-            DateTime startDate = new DateTime(processMonth.Year, processMonth.Month, 1);
-            DateTime endDate = startDate.AddMonths(1).AddSeconds(-1);
+            DateTime startDate = fromDate;
+            DateTime endDate = toDate;
 
             //maintenance records
             var q = from m in _dataContext.MaintenanceSet
@@ -35,7 +35,7 @@ namespace Astrodon.Reports.MaintenanceReport
                     where m.Requisition.trnDate >= startDate 
                        && m.Requisition.trnDate <= endDate
                        && m.Requisition.building == buildingId
-                       && m.Requisition.paid == true
+                    //   && m.Requisition.paid == true
                     select new MaintenanceReportDataItem()
                     {
                         MaintenanceClassificationType = m.BuildingMaintenanceConfiguration.MaintenanceClassificationType,
@@ -43,7 +43,7 @@ namespace Astrodon.Reports.MaintenanceReport
                         MaintenanceType = m.BuildingMaintenanceConfiguration.Name,
                         PastelAccountNumber = m.BuildingMaintenanceConfiguration.PastelAccountNumber,
                         PastelAccountName = m.BuildingMaintenanceConfiguration.PastelAccountName,
-                        MaintenanceDate = m.DateLogged,
+                        MaintenanceDate = m.Requisition.trnDate,
                         Description = m.Description,
                         Supplier = m.Requisition.Supplier.CompanyName,
                         CompanyReg = m.Requisition.Supplier.CompanyRegistration,
@@ -61,7 +61,8 @@ namespace Astrodon.Reports.MaintenanceReport
                         WarrantyNotes = m.WarrantyNotes,
                         WarrantyExpires = m.WarrentyExpires,
                         SerialNumber = m.WarrantySerialNumber,
-                        Amount = m.TotalAmount
+                        Amount = m.Requisition.amount,
+                        Paid = m.Requisition.paid ? "Y":"N"
                     };
 
             var reportData = q.ToList();  
@@ -74,7 +75,6 @@ namespace Astrodon.Reports.MaintenanceReport
                      where r.trnDate >= startDate
                            && r.trnDate <= endDate
                            && r.building == buildingId
-                           && r.paid == true
                            && g == null
                      select r).ToList();
 
@@ -116,34 +116,47 @@ namespace Astrodon.Reports.MaintenanceReport
                 WarrantyNotes = string.Empty,
                 WarrantyExpires = null,
                 SerialNumber = string.Empty,
-                Amount = r.Requisition.amount
+                Amount = r.Requisition.amount,
+                Paid = r.Requisition.paid ? "Y" : "N"
             }));
 
             if (reportData.Count <= 0)
                 return null;
 
-            reportData = reportData.OrderBy(a => a.MaintenanceClassificationType).ThenBy(a => a.Unit).ThenBy(a => a.MaintenanceType).ThenBy(a => a.Supplier).ToList();
+            reportData = reportData.OrderBy(a => a.MaintenanceClassificationType).ThenBy(a => a.Unit).ThenBy(a => a.MaintenanceType).ThenBy(a => a.MaintenanceDate).ThenBy(a => a.Supplier).ToList();
 
             var accountNumbers = reportData.Select(a => a.PastelAccountNumber).Distinct().ToArray();
-            var periodNumber = GetBuildingPeriod(processMonth, dataPath);
-            var accountList = LoadAccountValues(periodNumber, dataPath, accountNumbers);
+            var accountList = LoadAccountValues(startDate,endDate, dataPath, accountNumbers);
 
             //merge account data with account list
             string currentLedgerAccount = "";
 
+            decimal balance = 0;
             foreach (var dataItem in reportData)
             {
+
                 if (dataItem.PastelAccountNumber != currentLedgerAccount)
                 {
-                    dataItem.LoadBudget(accountList);
+                    balance = dataItem.Amount;
                     currentLedgerAccount = dataItem.PastelAccountNumber;
                 }
+                else
+                    balance = balance + dataItem.Amount;
+
+                var itm = accountList.FirstOrDefault(a => a.AccNumber == dataItem.PastelAccountNumber && a.PeriodMonth == new DateTime(dataItem.MaintenanceDate.Year,dataItem.MaintenanceDate.Month,1));
+                if (itm != null)
+                {
+                    dataItem.Budget = itm.Budget;
+                    dataItem.BudgetAvailable = itm.BudgetAvailable;
+                }
+
+                dataItem.Balance = balance;
             }
 
-            return RunReportToPdf(reportData, startDate, buildingName, reportType == MaintenanceReportType.SummaryReport);
+            return RunReportToPdf(reportData, startDate,endDate, buildingName, reportType == MaintenanceReportType.SummaryReport);
         }
 
-        private List<PervasiveAccount> LoadAccountValues(int periodNumber, string dataPath, string[] accountNumbers)
+        private List<PervasiveAccount> LoadAccountValues(DateTime startDate,DateTime endDate, string dataPath, string[] accountNumbers)
         {
             string accQry = "";
 
@@ -171,29 +184,36 @@ namespace Astrodon.Reports.MaintenanceReport
             List<PervasiveAccount> accountList = new List<PervasiveAccount>();
             foreach (DataRow row in accountData.Rows)
             {
-                accountList.Add(new PervasiveAccount(row, periodNumber));
+                var dt = startDate;
+                while (dt <= endDate)
+                {
+                    accountList.Add(new PervasiveAccount(row, GetBuildingPeriod(dt, dataPath),dt));
+                    dt = dt.AddMonths(1);
+                }
             }
 
             return accountList;
         }
 
-        private int GetBuildingPeriod(DateTime processMonth, string dataPath)
+        PeriodDataItem _periodItem = null;
+        private int GetBuildingPeriod(DateTime startDate, string dataPath)
         {
-            DateTime dDate = new DateTime(processMonth.Year, processMonth.Month, 1);
-
-            string sqlPeriodConfig = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.PeriodParameters.sql");
-            sqlPeriodConfig = SetDataSource(sqlPeriodConfig, dataPath);
-            var periodData = PervasiveSqlUtilities.FetchPervasiveData( sqlPeriodConfig, null);
-            PeriodDataItem periodItem = null;
-            foreach (DataRow row in periodData.Rows)
+            DateTime dDate = new DateTime(startDate.Year, startDate.Month, 1);
+            if (_periodItem == null)
             {
-                periodItem = new PeriodDataItem(row);
-                break;
+                string sqlPeriodConfig = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.PeriodParameters.sql");
+                sqlPeriodConfig = SetDataSource(sqlPeriodConfig, dataPath);
+                var periodData = PervasiveSqlUtilities.FetchPervasiveData(sqlPeriodConfig, null);
+                foreach (DataRow row in periodData.Rows)
+                {
+                    _periodItem = new PeriodDataItem(row);
+                    break;
+                }
             }
             int period = 0;
             try
             {
-                period = periodItem.PeriodNumberLookup(dDate);
+                period = _periodItem.PeriodNumberLookup(dDate);
             }
             catch (Exception err)
             {
@@ -208,7 +228,7 @@ namespace Astrodon.Reports.MaintenanceReport
         }
 
 
-        private byte[] RunReportToPdf(List<MaintenanceReportDataItem> data, DateTime dDate, string buildingName, bool detailedReport)
+        private byte[] RunReportToPdf(List<MaintenanceReportDataItem> data, DateTime startDate, DateTime endDate, string buildingName, bool detailedReport)
         {
             string rdlcPath = "Astrodon.Reports.MaintenanceReport.MaintenanceReport.rdlc";
             byte[] report = null;
@@ -216,7 +236,7 @@ namespace Astrodon.Reports.MaintenanceReport
             Dictionary<string, IEnumerable> reportData = new Dictionary<string, IEnumerable>();
             Dictionary<string, string> reportParams = new Dictionary<string, string>();
 
-            string period = dDate.ToString("MMM yyyy");
+            string period = startDate.ToString("MMM yyyy") + " - " + endDate.ToString("MMM yyyy");
 
             reportParams.Add("Period", period);
             reportParams.Add("BuildingName", buildingName);

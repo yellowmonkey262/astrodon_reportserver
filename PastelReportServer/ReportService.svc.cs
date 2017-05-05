@@ -34,13 +34,13 @@ namespace PastelDataService
             return lr.RunReport(processMonth, buildingName, dataPath, false);
         }
 
-        public byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType, DateTime processMonth, int buildingId, string buildingName, string dataPath)
+        public byte[] MaintenanceReport(string sqlConnectionString, MaintenanceReportType reportType,DateTime fromDate, DateTime toDate, int buildingId, string buildingName, string dataPath)
         {
             using (var dc = new DataContext(sqlConnectionString))
             {
                 var rp = new MaintenanceReport(dc);
 
-                return rp.RunReport(reportType, processMonth,buildingId, buildingName, dataPath);
+                return rp.RunReport(reportType, fromDate,toDate, buildingId, buildingName, dataPath);
                 
             }
         }
