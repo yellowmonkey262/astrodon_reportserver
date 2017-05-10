@@ -63,7 +63,21 @@ namespace Astrodon.Reports.MaintenanceReport
         public decimal Budget { get; set; }
         public decimal Balance { get; set; }
         public decimal BudgetAvailable { get; set; }
+        public int? LinkedPastelTransaction { get; set; }
 
-       
+        public string Ledger { get;  set; }
+
+        public string LedgerAccountNumber
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(Ledger))
+                    return Ledger;
+                if (!Ledger.Contains(":"))
+                    return Ledger;
+
+                return Ledger.Substring(0, Ledger.IndexOf(":"));
+            }
+        }
     }
 }

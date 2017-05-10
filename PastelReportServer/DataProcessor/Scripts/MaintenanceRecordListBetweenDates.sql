@@ -10,5 +10,5 @@
 from [DataSet].LedgerTransactions t 
 join [DataSet].LedgerMaster m on t.LinkAcc = m.AccNumber
 join [DataSet].LedgerMaster m2 on t.AccNumber = m2.AccNumber
-where  PPeriod >= 100 and PPeriod <= 112
+where   t.DDate >= [FromDate] and  t.DDate <= [ToDate]
 and ([AccountList])

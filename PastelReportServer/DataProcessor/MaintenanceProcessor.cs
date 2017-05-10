@@ -9,6 +9,7 @@ using System.Data;
 using Astrodon.Data.MaintenanceData;
 using System.Data.Entity;
 using Astrodon.DataContracts;
+using System.Globalization;
 
 namespace Astrodon.DataProcessor
 {
@@ -68,23 +69,8 @@ namespace Astrodon.DataProcessor
             }
 
             //remove matched requisitions
-            reqList = reqList.Except(reqList.Where(a => a.PastelLedgerAutoNumber != null)).ToList();
-
-            //match requisition transactions to pastel transactions and update changes
-            foreach (var req in reqList.Where(a => a.PastelLedgerAutoNumber == null))
-            {
-                var matched = pastelTransactions.Where(a => a.TransactionDate == req.trnDate.Date 
-                                                         && a.LedgerAccount == req.LedgerAccountNumber 
-                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount)
-                                                         && a.AccountType == req.account).FirstOrDefault();
-                if (matched != null)
-                {
-                    req.PastelLedgerAutoNumber = matched.AutoNumber;
-                    req.PastelDataPath = matched.DataPath;
-                    pastelTransactions.Remove(matched);
-                }
-            }
-            _context.SaveChanges();
+            pastelTransactions = CalculateMatches(pastelTransactions, reqList);
+           
 
 
             return pastelTransactions.OrderBy(a => a.TransactionDate).ToList();
@@ -123,5 +109,70 @@ namespace Astrodon.DataProcessor
         }
 
       
+        public List<PastelMaintenanceTransaction> FetchAndLinkMaintenanceTransactions(DateTime fromDate, DateTime toDate)
+        {
+            List<PastelMaintenanceTransaction> pastelTransactions = new List<PastelMaintenanceTransaction>();
+
+            string accountList = string.Empty;
+
+            foreach (var config in _buildingConfig)
+            {
+                if (!string.IsNullOrWhiteSpace(accountList))
+                    accountList = accountList + " or LinkAcc = '" + config.PastelAccountNumber + "'";
+                else
+                    accountList = "LinkAcc = '" + config.PastelAccountNumber + "'";
+            }
+
+            string dataPath = _building.DataPath;
+
+            string sqlMaintenanceRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.MaintenanceRecordListBetweenDates.sql");
+            sqlMaintenanceRecords = PervasiveSqlUtilities.SetDataSource(sqlMaintenanceRecords, dataPath);
+            sqlMaintenanceRecords = sqlMaintenanceRecords.Replace("[AccountList]", accountList);
+            sqlMaintenanceRecords = sqlMaintenanceRecords.Replace("[FromDate]", "'" + fromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "'");
+            sqlMaintenanceRecords = sqlMaintenanceRecords.Replace("[ToDate]", "'" + toDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "'");
+
+            foreach (DataRow row in PervasiveSqlUtilities.FetchPervasiveData(sqlMaintenanceRecords).Rows)
+                pastelTransactions.Add(new PastelMaintenanceTransaction(row, false, dataPath));
+
+
+            var minDate = pastelTransactions.Min(a => a.TransactionDate).Date.AddDays(-7);
+            var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(8).AddSeconds(-1);
+
+            var reqList = (from r in _context.tblRequisitions
+                           where r.trnDate >= minDate && r.trnDate <= maxDate
+                           && r.building == _buildingId
+                           select r).ToList();
+
+
+            //match requisition transactions to pastel transactions and update changes
+            return CalculateMatches(pastelTransactions, reqList);
+        }
+
+        private List<PastelMaintenanceTransaction> CalculateMatches(List<PastelMaintenanceTransaction> pastelTransactions, List<tblRequisition> reqList)
+        {
+            reqList = reqList.Except(reqList.Where(a => a.PastelLedgerAutoNumber != null)).ToList();
+            foreach (var req in reqList.Where(a => a.PastelLedgerAutoNumber == null))
+            {
+                var matched = pastelTransactions.Where(a => a.LedgerAccount == req.LedgerAccountNumber
+                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount))
+                                                         .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                var potential = matched.FirstOrDefault();
+                //find items where reference number is in here
+                matched = matched.Where(a => req.payreference.Contains(a.Reference)
+                                           || a.Reference.Contains(req.payreference)).OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                if (matched.Count > 0)
+                    potential = matched.FirstOrDefault();
+
+                if (potential != null)
+                {
+                    req.PastelLedgerAutoNumber = potential.AutoNumber;
+                    req.PastelDataPath = potential.DataPath;
+                    pastelTransactions.Remove(potential);
+                }
+            }
+            _context.SaveChanges();
+
+            return pastelTransactions;
+        }
     }
 }

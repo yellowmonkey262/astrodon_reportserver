@@ -11,6 +11,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Collections;
 using Astrodon.Data.MaintenanceData;
+using Astrodon.DataProcessor;
 
 namespace Astrodon.Reports.MaintenanceReport
 {
@@ -27,98 +28,127 @@ namespace Astrodon.Reports.MaintenanceReport
             DateTime startDate = fromDate;
             DateTime endDate = toDate;
 
-            //maintenance records
-            var q = from m in _dataContext.MaintenanceSet
-                                          .Include(c => c.BuildingMaintenanceConfiguration)
-                                          .Include(d => d.Requisition)
-                                          .Include(e => e.Requisition.Supplier)
-                    where m.Requisition.trnDate >= startDate 
-                       && m.Requisition.trnDate <= endDate
-                       && m.Requisition.building == buildingId
-                    //   && m.Requisition.paid == true
+            var pastelTransactions = new MaintenanceProcessor(_dataContext, buildingId).FetchAndLinkMaintenanceTransactions(startDate,endDate);
+
+            var buildingConfig = _dataContext.BuildingMaintenanceConfigurationSet.Where(a => a.BuildingId == buildingId).ToList();
+
+            var q = from r in _dataContext.tblRequisitions
+                    join maint in _dataContext.MaintenanceSet on r.id equals maint.RequisitionId into maintSet
+                    from m in maintSet.DefaultIfEmpty()
+                    where r.trnDate >= startDate
+                       && r.trnDate <= endDate
+                       && r.building == buildingId
                     select new MaintenanceReportDataItem()
                     {
-                        MaintenanceClassificationType = m.BuildingMaintenanceConfiguration.MaintenanceClassificationType,
-                        Unit = m.IsForBodyCorporate ? "Body Corporate" : m.CustomerAccount,
-                        MaintenanceType = m.BuildingMaintenanceConfiguration.Name,
-                        PastelAccountNumber = m.BuildingMaintenanceConfiguration.PastelAccountNumber,
-                        PastelAccountName = m.BuildingMaintenanceConfiguration.PastelAccountName,
-                        MaintenanceDate = m.Requisition.trnDate,
-                        Description = m.Description,
-                        Supplier = m.Requisition.Supplier.CompanyName,
-                        CompanyReg = m.Requisition.Supplier.CompanyRegistration,
-                        VatNumber = m.Requisition.Supplier.VATNumber,
-                        ContactPerson = m.Requisition.Supplier.ContactPerson,
-                        EmailAddress = m.Requisition.Supplier.EmailAddress,
-                        ContactNumber = m.Requisition.Supplier.ContactNumber,
-                        Bank = m.Requisition.BankName,
-                        Branch = m.Requisition.BranchName,
-                        BranchCode = m.Requisition.BranchCode,
-                        AccountNumber = m.Requisition.AccountNumber,
-                        InvoiceNumber = m.InvoiceNumber,
-                        WarrantyDuration = m.WarrantyDuration,
-                        WarrantyType = m.WarrantyDurationType,
-                        WarrantyNotes = m.WarrantyNotes,
-                        WarrantyExpires = m.WarrentyExpires,
-                        SerialNumber = m.WarrantySerialNumber,
-                        Amount = m.Requisition.amount,
-                        Paid = m.Requisition.paid ? "Y":"N"
+                        Ledger = r.ledger,
+                        MaintenanceClassificationType = m != null ? m.BuildingMaintenanceConfiguration.MaintenanceClassificationType : MaintenanceClassificationType.MaintenancePlan,
+                        Unit = m == null ? string.Empty : m.IsForBodyCorporate ? "Body Corporate" : m.CustomerAccount,
+                        MaintenanceType = m == null ? string.Empty : m.BuildingMaintenanceConfiguration.Name,
+                        PastelAccountNumber = m == null ? string.Empty : m.BuildingMaintenanceConfiguration.PastelAccountNumber,
+                        PastelAccountName = m == null ? string.Empty : m.BuildingMaintenanceConfiguration.PastelAccountName,
+                        MaintenanceDate = r.trnDate,
+                        Description = m == null ? r.reference : m.Description,
+                        Supplier = r.Supplier == null ? string.Empty : r.Supplier.CompanyName,
+                        CompanyReg = r.Supplier == null ? string.Empty : r.Supplier.CompanyRegistration,
+                        VatNumber = r.Supplier == null ? string.Empty : r.Supplier.VATNumber,
+                        ContactPerson = r.Supplier == null ? string.Empty : r.Supplier.ContactPerson,
+                        EmailAddress = r.Supplier == null ? string.Empty : r.Supplier.EmailAddress,
+                        ContactNumber = r.Supplier == null ? string.Empty : r.Supplier.ContactNumber,
+                        Bank = r.BankName,
+                        Branch = r.BranchName,
+                        BranchCode = r.BranchCode,
+                        AccountNumber = r.AccountNumber,
+                        InvoiceNumber = m == null ? string.Empty : m.InvoiceNumber,
+                        WarrantyDuration = m == null ? null : m.WarrantyDuration,
+                        WarrantyType = m == null ? null : m.WarrantyDurationType,
+                        WarrantyNotes = m == null ? string.Empty : m.WarrantyNotes,
+                        WarrantyExpires = m == null ? null : m.WarrentyExpires,
+                        SerialNumber = m == null ? string.Empty : m.WarrantySerialNumber,
+                        Amount = r.amount,
+                        Paid = r.paid ? "Y" : "N",
+                        LinkedPastelTransaction = r.PastelLedgerAutoNumber
                     };
 
-            var reportData = q.ToList();  
+            var reportData = q.ToList();
 
-            //now select all requisitions not already in the list
-
-            var dbList = (from r in _dataContext.tblRequisitions
-                     join m in _dataContext.MaintenanceSet on r.id equals m.RequisitionId into maint
-                     from g in maint.DefaultIfEmpty()
-                     where r.trnDate >= startDate
-                           && r.trnDate <= endDate
-                           && r.building == buildingId
-                           && g == null
-                     select r).ToList();
-
-            //filter q2 to maintenance only ledger accounts
-            //remove all non maintenance transactions
-            List<UnlinkedRequisitions> reqList = new List<UnlinkedRequisitions>();
-            foreach (var config in _dataContext.BuildingMaintenanceConfigurationSet.Where(a => a.BuildingId == buildingId).ToList())
-            {
-                foreach(var itm in dbList.Where(a => a.LedgerAccountNumber == config.PastelAccountNumber))
-                {
-                    reqList.Add(new UnlinkedRequisitions() { BuildingMaintenanceConfiguration = config, Requisition = itm });
-                }
-            }
-
+            reportData = (from r in reportData
+                          join bc in buildingConfig on r.LedgerAccountNumber equals bc.PastelAccountNumber
+                          select new MaintenanceReportDataItem
+                          {
+                              Ledger = r.Ledger,
+                              MaintenanceClassificationType = bc.MaintenanceClassificationType,
+                              Unit = r.Unit,
+                              MaintenanceType =bc.Name,
+                              PastelAccountNumber = bc.PastelAccountNumber,
+                              PastelAccountName = bc.PastelAccountName,
+                              MaintenanceDate = r.MaintenanceDate,
+                              Description = r.Description,
+                              Supplier = r.Supplier,
+                              CompanyReg = r.CompanyReg,
+                              VatNumber = r.VatNumber,
+                              ContactPerson = r.ContactPerson,
+                              EmailAddress = r.EmailAddress,
+                              ContactNumber = r.ContactNumber,
+                              Bank = r.Bank,
+                              Branch = r.Branch,
+                              BranchCode = r.BranchCode,
+                              AccountNumber = r.AccountNumber,
+                              InvoiceNumber = r.InvoiceNumber,
+                              WarrantyDuration = r.WarrantyDuration,
+                              WarrantyType = r.WarrantyType,
+                              WarrantyNotes = r.WarrantyNotes,
+                              WarrantyExpires = r.WarrantyExpires,
+                              SerialNumber = r.SerialNumber,
+                              Amount = r.Amount,
+                              Paid = r.Paid,
+                              LinkedPastelTransaction = r.LinkedPastelTransaction
+                          }).ToList();
+            
             //union the first query with the second one
 
-            reportData.AddRange(reqList.Select(r => new MaintenanceReportDataItem()
+            // now remove all pastel transctions from the pastel transaction list not already in the report
+            var toRemove = from p in pastelTransactions
+                           join r in reportData on p.AutoNumber equals r.LinkedPastelTransaction
+                           select p;
+
+            pastelTransactions = pastelTransactions.Except(toRemove.ToList()).ToList();
+            //now add these to the report data
+
+        
+            var configPastel = from p in pastelTransactions
+                               join c in buildingConfig on p.LedgerAccount equals c.PastelAccountNumber
+                               select new { pastel = p, BuildingMaintenanceConfiguration = c };
+
+            reportData.AddRange(configPastel.Select(r => new MaintenanceReportDataItem()
             {
                 MaintenanceClassificationType = r.BuildingMaintenanceConfiguration.MaintenanceClassificationType,
                 Unit = string.Empty,
                 MaintenanceType = r.BuildingMaintenanceConfiguration.Name,
                 PastelAccountNumber = r.BuildingMaintenanceConfiguration.PastelAccountNumber,
                 PastelAccountName = r.BuildingMaintenanceConfiguration.PastelAccountName,
-                MaintenanceDate = r.Requisition.trnDate,
-                Description = string.Empty,
+                MaintenanceDate = r.pastel.TransactionDate,
+                Description = r.pastel.Description,
                 Supplier = string.Empty,
                 CompanyReg = string.Empty,
                 VatNumber = string.Empty,
                 ContactPerson = string.Empty,
                 EmailAddress = string.Empty,
                 ContactNumber = string.Empty,
-                Bank = r.Requisition.BankName,
-                Branch = r.Requisition.BranchName,
-                BranchCode = r.Requisition.BranchCode,
-                AccountNumber = r.Requisition.AccountNumber,
-                InvoiceNumber = string.Empty,
-                WarrantyDuration =null,
-                WarrantyType =null,
+                Bank = string.Empty,
+                Branch = string.Empty,
+                BranchCode = string.Empty,
+                AccountNumber = string.Empty,
+                InvoiceNumber = r.pastel.Reference,
+                WarrantyDuration = null,
+                WarrantyType = null,
                 WarrantyNotes = string.Empty,
                 WarrantyExpires = null,
                 SerialNumber = string.Empty,
-                Amount = r.Requisition.amount,
-                Paid = r.Requisition.paid ? "Y" : "N"
+                Amount = Math.Abs( r.pastel.Amount),
+                Paid = string.Empty,
+                LinkedPastelTransaction = r.pastel.AutoNumber
             }));
+
 
             if (reportData.Count <= 0)
                 return null;
@@ -132,7 +162,7 @@ namespace Astrodon.Reports.MaintenanceReport
             string currentLedgerAccount = "";
 
             decimal balance = 0;
-            foreach (var dataItem in reportData)
+            foreach (var dataItem in reportData.Where(a => a.LinkedPastelTransaction != null))
             {
 
                 if (dataItem.PastelAccountNumber != currentLedgerAccount)

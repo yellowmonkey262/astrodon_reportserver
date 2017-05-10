@@ -107,6 +107,7 @@
     <EmbeddedResource Include="DataProcessor\Scripts\MaintenanceRecordList.sql" />
     <EmbeddedResource Include="DataProcessor\Scripts\PaymentTransactionList.sql" />
     <EmbeddedResource Include="DataProcessor\Scripts\TrustPaymentTransactionList.sql" />
+    <EmbeddedResource Include="DataProcessor\Scripts\MaintenanceRecordListBetweenDates.sql" />
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.LevyRollDataItem.datasource" />
     <Content Include="ReportService.svc" />
     <EmbeddedResource Include="Reports\MaintenanceReport\MaintenanceReport.rdlc" />

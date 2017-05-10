@@ -57,7 +57,7 @@ namespace Astrodon.Reports.MaintenanceReport
             decimal sumLast13 = 0;
             for (int x = 1; x <= 13; x++)
             {
-                sumLast13 += ReadDecimal(row, "BudgetLast" + x.ToString().PadLeft(2, '0'));
+                sumLast13 = ReadDecimal(row, "BudgetLast" + x.ToString().PadLeft(2, '0'));
             }
             if (period > 100)
             {
@@ -65,7 +65,7 @@ namespace Astrodon.Reports.MaintenanceReport
 
                 for (int x = 1; x <= fld; x++)
                 {
-                    sumLast13 += ReadDecimal(row, "BudgetThis" + x.ToString().PadLeft(2, '0'));
+                    sumLast13 = ReadDecimal(row, "BudgetThis" + x.ToString().PadLeft(2, '0'));
                 }
             }
             else
@@ -74,7 +74,7 @@ namespace Astrodon.Reports.MaintenanceReport
                 var fld = period;
                 for (int x = 1; x <= fld; x++)
                 {
-                    sumLast13 += ReadDecimal(row, "BudgetLast" + x.ToString().PadLeft(2, '0'));
+                    sumLast13 = ReadDecimal(row, "BudgetLast" + x.ToString().PadLeft(2, '0'));
                 }
             }
             return sumLast13;
