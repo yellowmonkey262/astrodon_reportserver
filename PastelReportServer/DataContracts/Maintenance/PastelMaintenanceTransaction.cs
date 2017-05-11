@@ -15,20 +15,17 @@ namespace Astrodon.DataContracts.Maintenance
 
         }
 
-        public PastelMaintenanceTransaction(DataRow row, bool isTrustAccount, string dataPath)
+        public PastelMaintenanceTransaction(DataRow row,  string dataPath)
         {
             AutoNumber = ReadInt(row, "AutoNumber");
             TransactionDate = ReadDate(row, "TransactionDate");
-            LedgerAccount = ReadString(row, "LedgerAccount");
             Account = ReadString(row, "Account");
             AccountName = ReadString(row, "AccountName");
-            LedgerAccountName = ReadString(row, "LedgerAccountName");
             Reference = ReadString(row, "Reference");
             Description = ReadString(row, "Description");
             Amount = ReadDecimal(row, "Amount");
-            TrustAccount = isTrustAccount;
             DataPath = dataPath;
-            AccountType = isTrustAccount ? "TRUST" : "OWN";
+            AccountType =  "OWN";
         }
 
         [DataMember]
@@ -36,12 +33,6 @@ namespace Astrodon.DataContracts.Maintenance
 
         [DataMember]
         public DateTime TransactionDate { get; set; }
-
-        [DataMember]
-        public string LedgerAccount { get; set; }
-
-        [DataMember]
-        public string LedgerAccountName { get; set; }
 
         [DataMember]
         public string Account { get; set; }

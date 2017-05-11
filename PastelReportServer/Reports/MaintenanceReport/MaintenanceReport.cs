@@ -116,7 +116,7 @@ namespace Astrodon.Reports.MaintenanceReport
 
         
             var configPastel = from p in pastelTransactions
-                               join c in buildingConfig on p.LedgerAccount equals c.PastelAccountNumber
+                               join c in buildingConfig on p.Account equals c.PastelAccountNumber
                                select new { pastel = p, BuildingMaintenanceConfiguration = c };
 
             reportData.AddRange(configPastel.Select(r => new MaintenanceReportDataItem()

@@ -23,42 +23,33 @@ namespace Astrodon.DataProcessor
             _building = context.tblBuildings.Where(a => a.id == buildingId).Single();
         }
 
-        private List<PaymentTransaction> FetchPaymentTransactions(bool isTrustAccount)
+        private List<PaymentTransaction> FetchPaymentTransactions()
         {
             List<PaymentTransaction> result = new List<PaymentTransaction>();
             string dataPath = _building.DataPath;
 
             string sqlPaymentRecords = string.Empty;
 
-            if (isTrustAccount)//use the trust account
-            {
-                dataPath = _context.tblSettings.First().trust;
-                //accountList = "LinkAcc = '" + _building.AccNumber + "'";
-                sqlPaymentRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.TrustPaymentTransactionList.sql");
-                sqlPaymentRecords = sqlPaymentRecords.Replace("[TRUSTACCOUNT]", _building.AccNumber);
-            }
-            else
-            {
-               sqlPaymentRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.PaymentTransactionList.sql");
-            }
+
+            sqlPaymentRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.PaymentTransactionList.sql");
 
             sqlPaymentRecords = PervasiveSqlUtilities.SetDataSource(sqlPaymentRecords, dataPath);
 
             foreach (DataRow row in PervasiveSqlUtilities.FetchPervasiveData(sqlPaymentRecords).Rows)
-                result.Add(new PaymentTransaction(row, isTrustAccount, dataPath));
+                result.Add(new PaymentTransaction(row, dataPath));
 
             return result;
         }
 
         public int LinkPayments()
         {
-           
+
 
             int result = 0;
             //step 1 find all payments in pastel
-            var pastelTransactions = FetchPaymentTransactions(false);
+            var pastelTransactions = FetchPaymentTransactions();
 
-            if (pastelTransactions.Count <= 0 )
+            if (pastelTransactions.Count <= 0)
                 return 0;
 
             if (pastelTransactions == null)
@@ -86,34 +77,71 @@ namespace Astrodon.DataProcessor
                     pastelTransactions.Remove(matched);
             }
 
-            //remove matched requisitions
-            reqList = reqList.Except(reqList.Where(a => a.PaymentLedgerAutoNumber != null)).ToList();
+            return CalculateMatches(pastelTransactions, reqList);
 
-            //now match pastel with requisition payment
+        }
 
-            foreach (var req in reqList)
+        private int CalculateMatches(List<PaymentTransaction> pastelTransactions, List<tblRequisition> reqList)
+        {
+            int result = 0;
+            reqList = reqList.Except(reqList.Where(a => a.PaymentLedgerAutoNumber != null)).ToList(); //remove already linked items
+
+            foreach (var req in reqList.Where(a => a.PaymentLedgerAutoNumber == null))
             {
-                var minD = req.trnDate.Date.AddDays(-5);
-                var maxD = req.trnDate.Date.AddDays(2);
+                var matched = pastelTransactions.Where(a => a.LedgerAccount == req.LedgerAccountNumber //match the requisition to the account, payments are matched to the LinkAccount
+                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount))
+                                                         .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
 
-                var matched = pastelTransactions.Where(a => a.TransactionDate >= minD
-                                                         && a.TransactionDate <= maxD
-                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount)
-                                                         && a.AccountType == req.account) //OWN or TRUST
-                                                         .OrderBy(a => a.TransactionDate - req.trnDate.Date).FirstOrDefault();
+                var potential = matched.FirstOrDefault(); //just amount
 
-                if (matched != null)
+                //date and same reference
+                matched = matched.Where(a => req.payreference == a.Reference && a.TransactionDate == req.trnDate)
+                                 .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                if (matched.Count > 0)
                 {
-                    req.PaymentLedgerAutoNumber = matched.AutoNumber;
-                    req.PaymentDataPath = matched.DataPath;
-                    if (_buildingId == 364) //only for testing maintenance 
+                    potential = matched.FirstOrDefault();
+                }
+                else
+                {
+                    //date
+                    matched = matched.Where(a => a.TransactionDate == req.trnDate)
+                                 .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                    if (matched.Count > 0)
+                    {
+                        potential = matched.FirstOrDefault();
+                    }
+                    else
+                    {
+                        //reference
+                        matched = matched.Where(a => req.payreference == a.Reference)
+                              .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                        if (matched.Count > 0)
+                        {
+                            potential = matched.FirstOrDefault();
+                        }
+                        else
+                        {
+                            //reference like
+                            matched = matched.Where(a => req.payreference.Contains(a.Reference) || a.Reference.Contains(req.payreference))
+                                      .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                            if (matched.Count > 0)
+                                potential = matched.FirstOrDefault();
+                        }
+                    }
+                }
+
+
+                if (potential != null)
+                {
+                    req.PaymentLedgerAutoNumber = potential.AutoNumber;
+                    req.PaymentDataPath = potential.DataPath;
+                    if (req.building == 364)
                     {
                         req.paid = true;
                     }
                     result++;
-                    pastelTransactions.Remove(matched);
+                    pastelTransactions.Remove(potential);
                 }
-
             }
             _context.SaveChanges();
 

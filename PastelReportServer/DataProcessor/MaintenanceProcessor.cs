@@ -36,7 +36,7 @@ namespace Astrodon.DataProcessor
                 return result;
 
             //load pastel transaction list
-            var pastelTransactions = FetchPastelMaintTransactions(false);
+            var pastelTransactions = FetchPastelMaintTransactions();
 
             if (pastelTransactions.Count <= 0)
                 return result;
@@ -45,8 +45,8 @@ namespace Astrodon.DataProcessor
                 pastelTransactions = new List<PastelMaintenanceTransaction>();
 
             //load requisitions
-            var minDate = pastelTransactions.Min(a => a.TransactionDate).Date;
-            var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(1).AddSeconds(-1);
+            var minDate = pastelTransactions.Min(a => a.TransactionDate).Date.AddDays(-7);
+            var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(7).AddSeconds(-1);
 
             var dbList = (from r in _context.tblRequisitions
                           where r.trnDate >= minDate && r.trnDate <= maxDate
@@ -76,7 +76,7 @@ namespace Astrodon.DataProcessor
             return pastelTransactions.OrderBy(a => a.TransactionDate).ToList();
         }
 
-        private List<PastelMaintenanceTransaction> FetchPastelMaintTransactions(bool isTrustAccount)
+        private List<PastelMaintenanceTransaction> FetchPastelMaintTransactions()
         {
             List<PastelMaintenanceTransaction> result = new List<PastelMaintenanceTransaction>();
 
@@ -85,30 +85,23 @@ namespace Astrodon.DataProcessor
             foreach (var config in _buildingConfig)
             {
                 if (!string.IsNullOrWhiteSpace(accountList))
-                    accountList = accountList + " or LinkAcc = '" + config.PastelAccountNumber + "'";
+                    accountList = accountList + " or  t.AccNumber = '" + config.PastelAccountNumber + "'";
                 else
-                    accountList = "LinkAcc = '" + config.PastelAccountNumber + "'";
+                    accountList = " t.AccNumber = '" + config.PastelAccountNumber + "'";
             }
 
             string dataPath = _building.DataPath;
-
-            if (isTrustAccount)//use the trust account
-            {
-                dataPath = _context.tblSettings.First().trust;
-                accountList = "LinkAcc = '" + _building.AccNumber + "'";
-            }
 
             string sqlMaintenanceRecords = PervasiveSqlUtilities.ReadResourceScript("Astrodon.DataProcessor.Scripts.MaintenanceRecordList.sql");
             sqlMaintenanceRecords = PervasiveSqlUtilities.SetDataSource(sqlMaintenanceRecords, dataPath);
             sqlMaintenanceRecords = sqlMaintenanceRecords.Replace("[AccountList]", accountList);
 
             foreach (DataRow row in PervasiveSqlUtilities.FetchPervasiveData(sqlMaintenanceRecords).Rows)
-                result.Add(new PastelMaintenanceTransaction(row,isTrustAccount, dataPath));
+                result.Add(new PastelMaintenanceTransaction(row, dataPath));
 
             return result;
         }
 
-      
         public List<PastelMaintenanceTransaction> FetchAndLinkMaintenanceTransactions(DateTime fromDate, DateTime toDate)
         {
             List<PastelMaintenanceTransaction> pastelTransactions = new List<PastelMaintenanceTransaction>();
@@ -118,9 +111,9 @@ namespace Astrodon.DataProcessor
             foreach (var config in _buildingConfig)
             {
                 if (!string.IsNullOrWhiteSpace(accountList))
-                    accountList = accountList + " or LinkAcc = '" + config.PastelAccountNumber + "'";
+                    accountList = accountList + " or  t.AccNumber = '" + config.PastelAccountNumber + "'";
                 else
-                    accountList = "LinkAcc = '" + config.PastelAccountNumber + "'";
+                    accountList = " t.AccNumber = '" + config.PastelAccountNumber + "'";
             }
 
             string dataPath = _building.DataPath;
@@ -132,7 +125,7 @@ namespace Astrodon.DataProcessor
             sqlMaintenanceRecords = sqlMaintenanceRecords.Replace("[ToDate]", "'" + toDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "'");
 
             foreach (DataRow row in PervasiveSqlUtilities.FetchPervasiveData(sqlMaintenanceRecords).Rows)
-                pastelTransactions.Add(new PastelMaintenanceTransaction(row, false, dataPath));
+                pastelTransactions.Add(new PastelMaintenanceTransaction(row, dataPath));
 
 
             var minDate = pastelTransactions.Min(a => a.TransactionDate).Date.AddDays(-7);
@@ -151,17 +144,51 @@ namespace Astrodon.DataProcessor
         private List<PastelMaintenanceTransaction> CalculateMatches(List<PastelMaintenanceTransaction> pastelTransactions, List<tblRequisition> reqList)
         {
             reqList = reqList.Except(reqList.Where(a => a.PastelLedgerAutoNumber != null)).ToList();
+
             foreach (var req in reqList.Where(a => a.PastelLedgerAutoNumber == null))
             {
-                var matched = pastelTransactions.Where(a => a.LedgerAccount == req.LedgerAccountNumber
+                var matched = pastelTransactions.Where(a => a.Account == req.LedgerAccountNumber //match the requisition to the account, payments are matched to the LinkAccount
                                                          && Math.Abs(a.Amount) == Math.Abs(req.amount))
                                                          .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
-                var potential = matched.FirstOrDefault();
-                //find items where reference number is in here
-                matched = matched.Where(a => req.payreference.Contains(a.Reference)
-                                           || a.Reference.Contains(req.payreference)).OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
-                if (matched.Count > 0)
+
+                var potential = matched.FirstOrDefault(); //just amount
+
+                //date and same reference
+                matched = matched.Where(a => req.payreference == a.Reference && a.TransactionDate == req.trnDate)
+                                 .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                if(matched.Count > 0)
+                {
                     potential = matched.FirstOrDefault();
+                }
+                else
+                {
+                    //date
+                    matched = matched.Where(a => a.TransactionDate == req.trnDate)
+                                 .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                    if (matched.Count > 0)
+                    {
+                        potential = matched.FirstOrDefault();
+                    }
+                    else
+                    {
+                        //reference
+                        matched = matched.Where(a => req.payreference == a.Reference)
+                              .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                        if (matched.Count > 0)
+                        {
+                            potential = matched.FirstOrDefault();
+                        }
+                        else
+                        {
+                            //reference like
+                            matched = matched.Where(a => req.payreference.Contains(a.Reference) || a.Reference.Contains(req.payreference))
+                                      .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
+                            if (matched.Count > 0)
+                                potential = matched.FirstOrDefault();
+                        }
+                    }
+                }
+           
 
                 if (potential != null)
                 {
