@@ -155,16 +155,59 @@ namespace Astrodon.Reports.MaintenanceReport
 
             reportData = reportData.OrderBy(a => a.MaintenanceClassificationType).ThenBy(a => a.Unit).ThenBy(a => a.MaintenanceType).ThenBy(a => a.MaintenanceDate).ThenBy(a => a.Supplier).ToList();
 
-            var accountNumbers = reportData.Select(a => a.PastelAccountNumber).Distinct().ToArray();
+            var accountNumbers = buildingConfig.Select(a => a.PastelAccountNumber).ToArray();// reportData.Select(a => a.PastelAccountNumber).Distinct().ToArray();
             var accountList = LoadAccountValues(startDate,endDate, dataPath, accountNumbers);
 
             //merge account data with account list
             string currentLedgerAccount = "";
 
+            //to load the budgets - foreach month foreach account find the first record and then apply the budget amount.
+            foreach (var account in accountList.Where(a => a.Budget != 0))
+            {
+
+                var transaction = reportData.Where(a => a.PastelAccountNumber == account.AccNumber && a.PeriodMonth == account.PeriodMonth).FirstOrDefault();
+                if (transaction == null)
+                {
+                    var config = buildingConfig.Where(a => a.PastelAccountNumber == account.AccNumber).First();
+                    transaction = new MaintenanceReportDataItem()
+                    {
+                        MaintenanceClassificationType = config.MaintenanceClassificationType,
+                        Unit = string.Empty,
+                        MaintenanceType = config.Name,
+                        PastelAccountNumber = config.PastelAccountNumber,
+                        PastelAccountName = config.PastelAccountName,
+                        MaintenanceDate = account.PeriodMonth,
+                        Description = string.Empty,
+                        Supplier = string.Empty,
+                        CompanyReg = string.Empty,
+                        VatNumber = string.Empty,
+                        ContactPerson = string.Empty,
+                        EmailAddress = string.Empty,
+                        ContactNumber = string.Empty,
+                        Bank = string.Empty,
+                        Branch = string.Empty,
+                        BranchCode = string.Empty,
+                        AccountNumber = string.Empty,
+                        InvoiceNumber = string.Empty,
+                        WarrantyDuration = null,
+                        WarrantyType = null,
+                        WarrantyNotes = string.Empty,
+                        WarrantyExpires = null,
+                        SerialNumber = string.Empty,
+                        Amount = 0,
+                        Paid = string.Empty,
+                        LinkedPastelTransaction = null
+                    };
+                    reportData.Add(transaction);
+                }
+
+                transaction.Budget = account.Budget;
+                transaction.BudgetAvailable = account.BudgetAvailable;
+            }
+
             decimal balance = 0;
             foreach (var dataItem in reportData.Where(a => a.LinkedPastelTransaction != null))
             {
-
                 if (dataItem.PastelAccountNumber != currentLedgerAccount)
                 {
                     balance = dataItem.Amount;
@@ -172,14 +215,6 @@ namespace Astrodon.Reports.MaintenanceReport
                 }
                 else
                     balance = balance + dataItem.Amount;
-
-                var itm = accountList.FirstOrDefault(a => a.AccNumber == dataItem.PastelAccountNumber && a.PeriodMonth == new DateTime(dataItem.MaintenanceDate.Year,dataItem.MaintenanceDate.Month,1));
-                if (itm != null)
-                {
-                    dataItem.Budget = itm.Budget;
-                    dataItem.BudgetAvailable = itm.BudgetAvailable;
-                }
-
                 dataItem.Balance = balance;
             }
 
