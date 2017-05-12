@@ -38,13 +38,14 @@ namespace Astrodon.DataProcessor
             //load pastel transaction list
             var pastelTransactions = FetchPastelMaintTransactions();
 
-            if (pastelTransactions.Count <= 0)
-                return result;
-
             if (pastelTransactions == null)
                 pastelTransactions = new List<PastelMaintenanceTransaction>();
 
-            //load requisitions
+            if (pastelTransactions.Count <= 0)
+                return result;
+
+           
+             //load requisitions
             var minDate = pastelTransactions.Min(a => a.TransactionDate).Date.AddDays(-7);
             var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(7).AddSeconds(-1);
 
@@ -127,18 +128,24 @@ namespace Astrodon.DataProcessor
             foreach (DataRow row in PervasiveSqlUtilities.FetchPervasiveData(sqlMaintenanceRecords).Rows)
                 pastelTransactions.Add(new PastelMaintenanceTransaction(row, dataPath));
 
+            var minDate = fromDate.Date.AddDays(-7);
+            var maxDate = toDate.Date.AddDays(8);
 
-            var minDate = pastelTransactions.Min(a => a.TransactionDate).Date.AddDays(-7);
-            var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(8).AddSeconds(-1);
+            if (pastelTransactions.Count > 0)
+            {
+                minDate = pastelTransactions.Min(a => a.TransactionDate).Date.AddDays(-7);
+                maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(8).AddSeconds(-1);
 
-            var reqList = (from r in _context.tblRequisitions
-                           where r.trnDate >= minDate && r.trnDate <= maxDate
-                           && r.building == _buildingId
-                           select r).ToList();
+                var reqList = (from r in _context.tblRequisitions
+                               where r.trnDate >= minDate && r.trnDate <= maxDate
+                               && r.building == _buildingId
+                               select r).ToList();
 
 
-            //match requisition transactions to pastel transactions and update changes
-            return CalculateMatches(pastelTransactions, reqList);
+                //match requisition transactions to pastel transactions and update changes
+                return CalculateMatches(pastelTransactions, reqList);
+            }
+            return pastelTransactions;
         }
 
         private List<PastelMaintenanceTransaction> CalculateMatches(List<PastelMaintenanceTransaction> pastelTransactions, List<tblRequisition> reqList)
