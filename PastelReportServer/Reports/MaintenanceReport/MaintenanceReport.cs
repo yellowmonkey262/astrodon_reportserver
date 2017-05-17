@@ -122,7 +122,7 @@ namespace Astrodon.Reports.MaintenanceReport
             reportData.AddRange(configPastel.Select(r => new MaintenanceReportDataItem()
             {
                 MaintenanceClassificationType = r.BuildingMaintenanceConfiguration.MaintenanceClassificationType,
-                Unit = string.Empty,
+                Unit = "Unknown Unit",
                 MaintenanceType = r.BuildingMaintenanceConfiguration.Name,
                 PastelAccountNumber = r.BuildingMaintenanceConfiguration.PastelAccountNumber,
                 PastelAccountName = r.BuildingMaintenanceConfiguration.PastelAccountName,
@@ -172,7 +172,7 @@ namespace Astrodon.Reports.MaintenanceReport
                     transaction = new MaintenanceReportDataItem()
                     {
                         MaintenanceClassificationType = config.MaintenanceClassificationType,
-                        Unit = string.Empty,
+                        Unit = "Unknown Unit",
                         MaintenanceType = config.Name,
                         PastelAccountNumber = config.PastelAccountNumber,
                         PastelAccountName = config.PastelAccountName,

@@ -8,4 +8,5 @@
 from [DataSet].LedgerTransactions t 
 join [DataSet].LedgerMaster m on t.AccNumber = m.AccNumber
 where   t.DDate >= [FromDate] and  t.DDate <= [ToDate]
+and t.Amount > 0
 and ([AccountList])
