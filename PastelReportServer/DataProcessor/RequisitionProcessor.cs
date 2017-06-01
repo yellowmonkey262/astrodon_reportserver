@@ -54,7 +54,7 @@ namespace Astrodon.DataProcessor
             if (pastelTransactions.Count <= 0)
                 return 0;
 
-         
+
             //load requisitions
             var minDate = pastelTransactions.Min(a => a.TransactionDate).Date;
             var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(1).AddSeconds(-1);
@@ -135,10 +135,7 @@ namespace Astrodon.DataProcessor
                 {
                     req.PaymentLedgerAutoNumber = potential.AutoNumber;
                     req.PaymentDataPath = potential.DataPath;
-                    if (req.building == 364)
-                    {
-                        req.paid = true;
-                    }
+                    req.paid = true;
                     result++;
                     pastelTransactions.Remove(potential);
                 }

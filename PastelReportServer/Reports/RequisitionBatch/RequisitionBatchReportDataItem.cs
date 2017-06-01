@@ -23,7 +23,12 @@ namespace Astrodon.Reports.RequisitionBatch
                 if (!LedgerAccount.Contains(":"))
                     return LedgerAccount;
 
-                return LedgerAccount.Substring(0, LedgerAccount.IndexOf(":"));
+                string temp = LedgerAccount.Substring(0, LedgerAccount.IndexOf(":"));
+                if(!string.IsNullOrWhiteSpace(temp) && temp.Length > 4)
+                {
+                    temp = temp.Insert(4, "/");
+                }
+                return temp;
             }
         }
         public string LedgerAccount { get; set; }
