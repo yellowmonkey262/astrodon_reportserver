@@ -62,7 +62,8 @@ namespace Astrodon.DataProcessor
             maxDate = maxDate.AddDays(7);
 
             var reqList = (from r in _context.tblRequisitions
-                           where r.trnDate >= minDate && r.trnDate <= maxDate
+                           where r.trnDate >= minDate 
+                           && r.trnDate <= maxDate
                            && r.building == _buildingId
                            && r.processed == true
                            select r).ToList();
@@ -88,8 +89,13 @@ namespace Astrodon.DataProcessor
 
             foreach (var req in reqList.Where(a => a.PaymentLedgerAutoNumber == null))
             {
+                DateTime minDate = req.trnDate.AddDays(-7);
+                DateTime maxDate = req.trnDate.AddDays(7);
+
                 var matched = pastelTransactions.Where(a => a.LedgerAccount == req.LedgerAccountNumber //match the requisition to the account, payments are matched to the LinkAccount
-                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount))
+                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount)
+                                                         && a.TransactionDate >= minDate
+                                                         && a.TransactionDate <= maxDate)
                                                          .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
 
                 var potential = matched.FirstOrDefault(); //just amount

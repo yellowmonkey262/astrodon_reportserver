@@ -39,10 +39,18 @@ namespace Astrodon.Reports.RequisitionBatch
                      }).OrderBy(a => a.Created).ToList();
 
             int x = 1;
-            foreach(var r in reportDataSet)
+            foreach (var r in reportDataSet)
             {
                 r.Number = x;
-                r.TrustAccount = "("+building.AccNumber.Substring(0, 4)+")";
+                if (!String.IsNullOrWhiteSpace(building.AccNumber))
+                {
+                    if (building.AccNumber.Length > 4)
+                        r.TrustAccount = "(" + building.AccNumber.Substring(0, 4) + ")";
+                    else
+                        r.TrustAccount = "(" + building.AccNumber + ")";
+                }
+                else
+                    r.TrustAccount = "";
                 r.Abbr = building.Code;
                 x++;
             }

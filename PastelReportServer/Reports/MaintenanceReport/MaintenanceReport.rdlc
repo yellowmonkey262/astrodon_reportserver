@@ -2685,8 +2685,8 @@
         <KeepTogether>true</KeepTogether>
         <DataSetName>MaintenanceReport</DataSetName>
         <Top>0.03528cm</Top>
-        <Height>6.07827cm</Height>
-        <Width>27.36014cm</Width>
+        <Height>6.0783cm</Height>
+        <Width>27.36015cm</Width>
         <Style>
           <Border>
             <Style>None</Style>
@@ -3470,7 +3470,7 @@
         <Top>6.88583cm</Top>
         <Left>0.15875cm</Left>
         <Height>2.21479cm</Height>
-        <Width>12.86242cm</Width>
+        <Width>12.86243cm</Width>
         <ZIndex>1</ZIndex>
         <Style>
           <Border>

@@ -154,8 +154,14 @@ namespace Astrodon.DataProcessor
 
             foreach (var req in reqList.Where(a => a.PastelLedgerAutoNumber == null))
             {
+                DateTime minDate = req.trnDate.AddDays(-7);
+                DateTime maxDate = req.trnDate.AddDays(7);
+
                 var matched = pastelTransactions.Where(a => a.Account == req.LedgerAccountNumber //match the requisition to the account, payments are matched to the LinkAccount
-                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount))
+                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount)
+                                                          && a.TransactionDate >= minDate
+                                                         && a.TransactionDate <= maxDate)
+
                                                          .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
 
                 var potential = matched.FirstOrDefault(); //just amount
