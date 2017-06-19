@@ -35,6 +35,8 @@ namespace Astrodon.Reports.MaintenanceReport
             var q = from r in _dataContext.tblRequisitions
                     join maint in _dataContext.MaintenanceSet on r.id equals maint.RequisitionId into maintSet
                     from m in maintSet.DefaultIfEmpty()
+                    join d in _dataContext.MaintenanceDetailItemSet on m.id equals d.MaintenanceId into maintenanceDetail
+                    from detail in maintenanceDetail.DefaultIfEmpty()
                     where r.trnDate >= startDate
                        && r.trnDate <= endDate
                        && r.building == buildingId
@@ -42,7 +44,7 @@ namespace Astrodon.Reports.MaintenanceReport
                     {
                         Ledger = r.ledger,
                         MaintenanceClassificationType = m != null ? m.BuildingMaintenanceConfiguration.MaintenanceClassificationType : MaintenanceClassificationType.MaintenancePlan,
-                        Unit = m == null ? string.Empty : m.IsForBodyCorporate ? "Body Corporate" : m.CustomerAccount,
+                        Unit = detail == null ? string.Empty : detail.IsForBodyCorporate ? "Body Corporate" : detail.CustomerAccount,
                         MaintenanceType = m == null ? string.Empty : m.BuildingMaintenanceConfiguration.Name,
                         PastelAccountNumber = m == null ? string.Empty : m.BuildingMaintenanceConfiguration.PastelAccountNumber,
                         PastelAccountName = m == null ? string.Empty : m.BuildingMaintenanceConfiguration.PastelAccountName,
@@ -64,7 +66,7 @@ namespace Astrodon.Reports.MaintenanceReport
                         WarrantyNotes = m == null ? string.Empty : m.WarrantyNotes,
                         WarrantyExpires = m == null ? null : m.WarrentyExpires,
                         SerialNumber = m == null ? string.Empty : m.WarrantySerialNumber,
-                        Amount = r.amount,
+                        Amount = detail == null ? r.amount : detail.Amount,
                         Paid = r.paid ? "Y" : "N",
                         LinkedPastelTransaction = r.PastelLedgerAutoNumber
                     };
@@ -218,7 +220,7 @@ namespace Astrodon.Reports.MaintenanceReport
                 dataItem.Balance = balance;
             }
 
-            return RunReportToPdf(reportData, startDate,endDate, buildingName, reportType == MaintenanceReportType.SummaryReport);
+            return RunReportToPdf(reportData, startDate,endDate, buildingName, reportType != MaintenanceReportType.SummaryReport);
         }
 
         private List<PervasiveAccount> LoadAccountValues(DateTime startDate,DateTime endDate, string dataPath, string[] accountNumbers)

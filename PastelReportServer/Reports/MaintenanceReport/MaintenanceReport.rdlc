@@ -2473,7 +2473,7 @@
                                         </TablixMember>
                                         <TablixMember>
                                           <Visibility>
-                                            <Hidden>=Fields!DetailLineVisible.Value = False</Hidden>
+                                            <Hidden>=Parameters!DetailedReport.Value = False</Hidden>
                                           </Visibility>
                                           <KeepWithGroup>Before</KeepWithGroup>
                                         </TablixMember>
