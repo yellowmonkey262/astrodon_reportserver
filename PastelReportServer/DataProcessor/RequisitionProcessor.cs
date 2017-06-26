@@ -13,6 +13,7 @@ namespace Astrodon.DataProcessor
     {
         private DataContext _context;
         private int _buildingId;
+        private int _DayTolerance = 60;
 
         private tblBuilding _building;
 
@@ -56,8 +57,8 @@ namespace Astrodon.DataProcessor
 
 
             //load requisitions
-            var minDate = pastelTransactions.Min(a => a.TransactionDate).Date;
-            var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(1).AddSeconds(-1);
+            var minDate = pastelTransactions.Min(a => a.TransactionDate).Date.AddDays(_DayTolerance*-1);
+            var maxDate = pastelTransactions.Max(a => a.TransactionDate).Date.AddDays(_DayTolerance).AddSeconds(-1);
             minDate = minDate.AddDays(-7);
             maxDate = maxDate.AddDays(7);
 
@@ -87,55 +88,56 @@ namespace Astrodon.DataProcessor
             int result = 0;
             reqList = reqList.Except(reqList.Where(a => a.PaymentLedgerAutoNumber != null)).ToList(); //remove already linked items
 
+            //clear null references
+            foreach(var r in reqList.Where(a => a.reference == null))
+            {
+                r.reference = string.Empty;
+            }
+
             foreach (var req in reqList.Where(a => a.PaymentLedgerAutoNumber == null))
             {
-                DateTime minDate = req.trnDate.AddDays(-7);
-                DateTime maxDate = req.trnDate.AddDays(7);
+                DateTime minDate = req.trnDate.AddDays(_DayTolerance*-1);
+                DateTime maxDate = req.trnDate.AddDays(_DayTolerance);
 
-                var matched = pastelTransactions.Where(a => a.LedgerAccount == req.LedgerAccountNumber //match the requisition to the account, payments are matched to the LinkAccount
-                                                         && Math.Abs(a.Amount) == Math.Abs(req.amount)
+                var matched = pastelTransactions.Where(a =>  //match the requisition to the account, payments are matched to the LinkAccount
+                                                         Math.Abs(a.Amount) == Math.Abs(req.amount)
                                                          && a.TransactionDate >= minDate
                                                          && a.TransactionDate <= maxDate)
                                                          .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
-
-                var potential = matched.FirstOrDefault(); //just amount
-
-                //date and same reference
-                matched = matched.Where(a => req.payreference == a.Reference && a.TransactionDate == req.trnDate)
-                                 .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
-                if (matched.Count > 0)
+                //clear null references
+                foreach (var r in matched.Where(a => a.Reference == null))
                 {
-                    potential = matched.FirstOrDefault();
-                }
-                else
-                {
-                    //date
-                    matched = matched.Where(a => a.TransactionDate == req.trnDate)
-                                 .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
-                    if (matched.Count > 0)
-                    {
-                        potential = matched.FirstOrDefault();
-                    }
-                    else
-                    {
-                        //reference
-                        matched = matched.Where(a => req.payreference == a.Reference)
-                              .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
-                        if (matched.Count > 0)
-                        {
-                            potential = matched.FirstOrDefault();
-                        }
-                        else
-                        {
-                            //reference like
-                            matched = matched.Where(a => req.payreference.Contains(a.Reference) || a.Reference.Contains(req.payreference))
-                                      .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate))).ToList();
-                            if (matched.Count > 0)
-                                potential = matched.FirstOrDefault();
-                        }
-                    }
+                    r.Reference = string.Empty;
                 }
 
+                var potential = matched.Where(a => a.LedgerAccount == req.LedgerAccountNumber
+                                                && a.Reference.ToLower() == req.reference.ToLower()
+                                                && a.Reference != string.Empty)
+                                     .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate)))
+                                     .FirstOrDefault(); //amount and account and reference
+
+                
+                if(potential == null)
+                {
+                    potential = matched.Where(a => a.LedgerAccount == req.LedgerAccountNumber
+                                                && a.Reference.ToLower().Contains(req.reference.ToLower()) || req.reference.ToLower().Contains(a.Reference.ToLower())
+                                                 && a.Reference != string.Empty)
+                                     .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate)))
+                                     .FirstOrDefault(); //just amount and account and reference
+                }
+
+                if (potential == null)
+                {
+                    potential = matched.Where(a => a.LedgerAccount == req.LedgerAccountNumber)
+                                     .OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate)))
+                                     .FirstOrDefault(); //just amount and account
+                }
+
+                if (potential == null && req.trnDate < DateTime.Today.AddDays(-3)) //more than 48 hours
+                {
+                    potential = matched.OrderByDescending(a => Math.Abs(DateTime.Compare(a.TransactionDate, req.trnDate)))
+                                     .FirstOrDefault(); //just amount 
+                }
 
                 if (potential != null)
                 {
