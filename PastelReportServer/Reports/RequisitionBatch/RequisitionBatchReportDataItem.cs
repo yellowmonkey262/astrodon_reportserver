@@ -35,6 +35,9 @@ namespace Astrodon.Reports.RequisitionBatch
         public decimal Amount { get; set; }
         public string SupplierReference { get; set; }
         public string InvoiceNumber { get; set; }
-        public string Abbr { get; internal set; }
+        public string Abbr { get;  set; }
+
+        public bool UseNedbankCSV { get;  set; }
+        public string CSVDescription { get { return UseNedbankCSV ? "CSV" : "Manual Payment"; } }
     }
 }

@@ -35,8 +35,9 @@ namespace Astrodon.Reports.RequisitionBatch
                          LedgerAccount = r.ledger,
                          Amount = r.amount,
                          SupplierReference = r.payreference,
-                         InvoiceNumber = r.InvoiceNumber
-                     }).OrderBy(a => a.Created).ToList();
+                         InvoiceNumber = r.InvoiceNumber,
+                         UseNedbankCSV = r.UseNedbankCSV == null ? false : r.UseNedbankCSV.Value
+                     }).OrderBy(a => a.CSVDescription).ThenBy(a => a.Created).ToList();
 
             int x = 1;
             foreach (var r in reportDataSet)
