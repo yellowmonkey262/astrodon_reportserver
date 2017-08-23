@@ -95,6 +95,8 @@
     <Compile Include="Reports\MaintenanceReport\MaintenanceReport.cs" />
     <Compile Include="Reports\MaintenanceReport\MaintenanceReportDataItem.cs" />
     <Compile Include="Reports\MaintenanceReport\PervasiveAccount.cs" />
+    <Compile Include="Reports\ManagementReportCoverPage\ManagementReportCoverPage.cs" />
+    <Compile Include="Reports\ManagementReportCoverPage\TOCDataItem.cs" />
     <Compile Include="Reports\PervasiveDataItem.cs" />
     <Compile Include="Reports\RdlcHelper.cs" />
     <Compile Include="Reports\ReportDataBase.cs" />
@@ -111,6 +113,7 @@
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.LevyRollDataItem.datasource" />
     <Content Include="ReportService.svc" />
     <EmbeddedResource Include="Reports\MaintenanceReport\MaintenanceReport.rdlc" />
+    <EmbeddedResource Include="Reports\ManagementReportCoverPage\ManagementReportCoverPageReport.rdlc" />
     <EmbeddedResource Include="Reports\RequisitionBatch\RequisitionReport.rdlc" />
     <EmbeddedResource Include="Reports\Scripts\Sundries.sql" />
     <EmbeddedResource Include="Reports\Scripts\PeriodParameters.sql" />
@@ -144,6 +147,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\Astrodon.Reports.MaintenanceReport.MaintenanceReportDataItem.datasource" />
+    <None Include="Properties\DataSources\Astrodon.Reports.ManagementReportCoverPage.TOCDataItem.datasource" />
     <None Include="Properties\DataSources\Astrodon.Reports.RequisitionBatch.RequisitionBatchReportDataItem.datasource" />
     <None Include="Properties\DataSources\Astrodon.Reports.SupplierReport.SupplierReportDataItem.datasource" />
   </ItemGroup>

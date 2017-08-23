@@ -15,6 +15,7 @@ using Astrodon.Reports.SupplierReport;
 using Astrodon.DataContracts.Maintenance;
 using Astrodon.DataProcessor;
 using Astrodon.Reports.RequisitionBatch;
+using Astrodon.Reports.ManagementReportCoverPage;
 
 namespace PastelDataService
 {
@@ -75,6 +76,12 @@ namespace PastelDataService
 
                 return rp.RunReport(requisitionBatchId);
             }
+        }
+
+        public byte[] ManagementPackCoverPage(DateTime processMonth, string buildingName, List<TOCDataItem> tocDataItems)
+        {
+            var rp = new ManagementReportCoverPage();
+            return rp.RunReport(processMonth, buildingName, tocDataItems);
         }
     }
 }

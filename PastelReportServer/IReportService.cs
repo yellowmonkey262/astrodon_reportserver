@@ -1,5 +1,6 @@
 ﻿using Astrodon.DataContracts;
 using Astrodon.DataContracts.Maintenance;
+using Astrodon.Reports.ManagementReportCoverPage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,5 +32,7 @@ namespace PastelDataService
         [OperationContract]
         byte[] RequisitionBatchReport(string sqlConnectionString, int requisitionBatchId);
 
+        [OperationContract]
+        byte[] ManagementPackCoverPage(DateTime processMonth, string buildingName, List<TOCDataItem> tocDataItems);
     }
 }
