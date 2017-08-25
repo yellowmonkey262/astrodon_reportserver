@@ -88,6 +88,8 @@
       <DependentUpon>ReportService.svc</DependentUpon>
     </Compile>
     <Compile Include="Reports\IdValue.cs" />
+    <Compile Include="Reports\InsuranceSchedule\InsuranceScheduleReport.cs" />
+    <Compile Include="Reports\InsuranceSchedule\InsuranceScheduleDataItem.cs" />
     <Compile Include="Reports\LevyRoll\LevyRollDataItem.cs" />
     <Compile Include="Reports\LevyRoll\LevyRollReport.cs" />
     <Compile Include="Reports\LevyRoll\PeriodDataItem.cs" />
@@ -112,6 +114,7 @@
     <EmbeddedResource Include="DataProcessor\Scripts\MaintenanceRecordListBetweenDates.sql" />
     <Content Include="Properties\DataSources\Astrodon.Reports.LevyRoll.LevyRollDataItem.datasource" />
     <Content Include="ReportService.svc" />
+    <EmbeddedResource Include="Reports\InsuranceSchedule\InsuranceScheduleReport.rdlc" />
     <EmbeddedResource Include="Reports\MaintenanceReport\MaintenanceReport.rdlc" />
     <EmbeddedResource Include="Reports\ManagementReportCoverPage\ManagementReportCoverPageReport.rdlc" />
     <EmbeddedResource Include="Reports\RequisitionBatch\RequisitionReport.rdlc" />
@@ -146,6 +149,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Properties\DataSources\Astrodon.Reports.InsuranceSchedule.InsuranceScheduleDataItem.datasource" />
     <None Include="Properties\DataSources\Astrodon.Reports.MaintenanceReport.MaintenanceReportDataItem.datasource" />
     <None Include="Properties\DataSources\Astrodon.Reports.ManagementReportCoverPage.TOCDataItem.datasource" />
     <None Include="Properties\DataSources\Astrodon.Reports.RequisitionBatch.RequisitionBatchReportDataItem.datasource" />

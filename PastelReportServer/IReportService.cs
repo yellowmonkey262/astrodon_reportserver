@@ -34,5 +34,8 @@ namespace PastelDataService
 
         [OperationContract]
         byte[] ManagementPackCoverPage(DateTime processMonth, string buildingName, List<TOCDataItem> tocDataItems);
+
+        [OperationContract]
+        byte[] InsuranceSchedule(string sqlConnectionString, int buildingId);
     }
 }

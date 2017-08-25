@@ -16,6 +16,7 @@ using Astrodon.DataContracts.Maintenance;
 using Astrodon.DataProcessor;
 using Astrodon.Reports.RequisitionBatch;
 using Astrodon.Reports.ManagementReportCoverPage;
+using Astrodon.Reports.InsuranceSchedule;
 
 namespace PastelDataService
 {
@@ -82,6 +83,16 @@ namespace PastelDataService
         {
             var rp = new ManagementReportCoverPage();
             return rp.RunReport(processMonth, buildingName, tocDataItems);
+        }
+
+        public byte[] InsuranceSchedule(string sqlConnectionString, int buildingId)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new InsuranceScheduleReport(dc);
+
+                return rp.RunReport(buildingId);
+            }
         }
     }
 }
