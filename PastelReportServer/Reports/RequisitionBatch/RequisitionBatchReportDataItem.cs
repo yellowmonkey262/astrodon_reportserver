@@ -38,6 +38,6 @@ namespace Astrodon.Reports.RequisitionBatch
         public string Abbr { get;  set; }
 
         public bool UseNedbankCSV { get;  set; }
-        public string CSVDescription { get { return UseNedbankCSV ? "CSV" : "Manual Payment"; } }
+        public string CSVDescription {  get { return UseNedbankCSV ? "CSV File Payments" : "Manual Payments"; } }
     }
 }
