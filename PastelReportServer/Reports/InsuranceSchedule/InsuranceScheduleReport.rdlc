@@ -36,6 +36,7 @@
                             <TextRun>
                               <Value>Unit</Value>
                               <Style>
+                                <FontFamily>Courier New</FontFamily>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
@@ -68,11 +69,14 @@
                             <TextRun>
                               <Value>PQ Persentage</Value>
                               <Style>
+                                <FontFamily>Courier New</FontFamily>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox17</rd:DefaultName>
@@ -100,11 +104,14 @@
                             <TextRun>
                               <Value>Additional Cost</Value>
                               <Style>
+                                <FontFamily>Courier New</FontFamily>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox20</rd:DefaultName>
@@ -132,11 +139,14 @@
                             <TextRun>
                               <Value>Unit Cost</Value>
                               <Style>
+                                <FontFamily>Courier New</FontFamily>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox22</rd:DefaultName>
@@ -164,11 +174,14 @@
                             <TextRun>
                               <Value>Total Cost</Value>
                               <Style>
+                                <FontFamily>Courier New</FontFamily>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox24</rd:DefaultName>
@@ -200,7 +213,9 @@
                           <TextRuns>
                             <TextRun>
                               <Value>=Fields!Unit.Value</Value>
-                              <Style />
+                              <Style>
+                                <FontFamily>Courier New</FontFamily>
+                              </Style>
                             </TextRun>
                           </TextRuns>
                           <Style />
@@ -229,11 +244,15 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>=Fields!PQPersentage.Value</Value>
-                              <Style />
+                              <Value>=FormatNumber(Fields!PQPersentage.Value,2)</Value>
+                              <Style>
+                                <FontFamily>Courier New</FontFamily>
+                              </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>PQPersentage</rd:DefaultName>
@@ -259,11 +278,15 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>=Fields!AdditionalCost.Value</Value>
-                              <Style />
+                              <Value>=IIf(Fields!AdditionalCost.Value &lt;&gt; 0, "R" + FormatNumber(Fields!AdditionalCost.Value, 2),"")</Value>
+                              <Style>
+                                <FontFamily>Courier New</FontFamily>
+                              </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>AdditionalCost</rd:DefaultName>
@@ -289,11 +312,15 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>=Fields!UnitCost.Value</Value>
-                              <Style />
+                              <Value>=IIf(Fields!UnitCost.Value &lt;&gt; 0, "R" + FormatNumber(Fields!UnitCost.Value, 2),"")</Value>
+                              <Style>
+                                <FontFamily>Courier New</FontFamily>
+                              </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>UnitCost</rd:DefaultName>
@@ -319,11 +346,15 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>=Fields!TotalCost.Value</Value>
-                              <Style />
+                              <Value>=IIf(Fields!TotalCost.Value &lt;&gt; 0, "R" + FormatNumber(Fields!TotalCost.Value, 2),"")</Value>
+                              <Style>
+                                <FontFamily>Courier New</FontFamily>
+                              </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>TotalCost</rd:DefaultName>
@@ -367,7 +398,7 @@
         <Top>0.49389cm</Top>
         <Left>0.3175cm</Left>
         <Height>1.2cm</Height>
-        <Width>26.66765cm</Width>
+        <Width>26.66763cm</Width>
         <Style>
           <Border>
             <Style>None</Style>
