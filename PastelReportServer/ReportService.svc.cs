@@ -79,10 +79,10 @@ namespace PastelDataService
             }
         }
 
-        public byte[] ManagementPackCoverPage(DateTime processMonth, string buildingName, List<TOCDataItem> tocDataItems)
+        public byte[] ManagementPackCoverPage(DateTime processMonth, string buildingName, string agent, List<TOCDataItem> tocDataItems)
         {
             var rp = new ManagementReportCoverPage();
-            return rp.RunReport(processMonth, buildingName, tocDataItems);
+            return rp.RunReport(processMonth, buildingName,agent, tocDataItems);
         }
 
         public byte[] InsuranceSchedule(string sqlConnectionString, int buildingId)

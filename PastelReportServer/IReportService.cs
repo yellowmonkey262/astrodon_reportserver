@@ -33,7 +33,7 @@ namespace PastelDataService
         byte[] RequisitionBatchReport(string sqlConnectionString, int requisitionBatchId);
 
         [OperationContract]
-        byte[] ManagementPackCoverPage(DateTime processMonth, string buildingName, List<TOCDataItem> tocDataItems);
+        byte[] ManagementPackCoverPage(DateTime processMonth, string buildingName, string agent, List<TOCDataItem> tocDataItems);
 
         [OperationContract]
         byte[] InsuranceSchedule(string sqlConnectionString, int buildingId);

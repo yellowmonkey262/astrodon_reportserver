@@ -9,10 +9,10 @@
               <Width>2.85668cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>11.50855cm</Width>
+              <Width>10.8286cm</Width>
             </TablixColumn>
             <TablixColumn>
-              <Width>2.69792cm</Width>
+              <Width>3.64245cm</Width>
             </TablixColumn>
           </TablixColumns>
           <TablixRows>
@@ -92,13 +92,15 @@
                         <Paragraph>
                           <TextRuns>
                             <TextRun>
-                              <Value>Page Number</Value>
+                              <Value>Number of Pages</Value>
                               <Style>
                                 <FontWeight>Bold</FontWeight>
                               </Style>
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>Textbox7</rd:DefaultName>
@@ -193,7 +195,9 @@
                               <Style />
                             </TextRun>
                           </TextRuns>
-                          <Style />
+                          <Style>
+                            <TextAlign>Right</TextAlign>
+                          </Style>
                         </Paragraph>
                       </Paragraphs>
                       <rd:DefaultName>PageNumber</rd:DefaultName>
@@ -235,7 +239,7 @@
         <Top>0.52035cm</Top>
         <Left>0.34396cm</Left>
         <Height>1.0677cm</Height>
-        <Width>17.06315cm</Width>
+        <Width>17.32773cm</Width>
         <Style>
           <Border>
             <Style>None</Style>
@@ -243,15 +247,14 @@
         </Style>
       </Tablix>
     </ReportItems>
-    <Height>1.73823in</Height>
+    <Height>0.67573in</Height>
     <Style />
   </Body>
   <Width>7.06762in</Width>
   <Page>
     <PageHeader>
-      <Height>5.38766cm</Height>
+      <Height>5.84627cm</Height>
       <PrintOnFirstPage>true</PrintOnFirstPage>
-      <PrintOnLastPage>true</PrintOnLastPage>
       <ReportItems>
         <Textbox Name="Textbox2">
           <CanGrow>true</CanGrow>
@@ -313,7 +316,7 @@
             </Paragraph>
           </Paragraphs>
           <rd:DefaultName>Textbox2</rd:DefaultName>
-          <Top>2.96231cm</Top>
+          <Top>3.91481cm</Top>
           <Left>0.07938cm</Left>
           <Height>1.8519cm</Height>
           <Width>17.59231cm</Width>
@@ -381,11 +384,57 @@
                 <TextAlign>Right</TextAlign>
               </Style>
             </Paragraph>
+            <Paragraph>
+              <TextRuns>
+                <TextRun>
+                  <Value>Created </Value>
+                  <Style>
+                    <FontFamily>Courier New</FontFamily>
+                    <FontSize>8pt</FontSize>
+                    <Format>yyyy/MM/dd</Format>
+                  </Style>
+                </TextRun>
+                <TextRun>
+                  <Value>=Globals!ExecutionTime</Value>
+                  <Style>
+                    <FontFamily>Courier New</FontFamily>
+                    <FontSize>8pt</FontSize>
+                    <Format>g</Format>
+                  </Style>
+                </TextRun>
+              </TextRuns>
+              <Style>
+                <TextAlign>Right</TextAlign>
+              </Style>
+            </Paragraph>
+            <Paragraph>
+              <TextRuns>
+                <TextRun>
+                  <Value>Created by </Value>
+                  <Style>
+                    <FontFamily>Courier New</FontFamily>
+                    <FontSize>8pt</FontSize>
+                    <Format>yyyy/MM/dd</Format>
+                  </Style>
+                </TextRun>
+                <TextRun>
+                  <Value>=Parameters!AgentName.Value</Value>
+                  <Style>
+                    <FontFamily>Courier New</FontFamily>
+                    <FontSize>8pt</FontSize>
+                    <Format>yyyy/MM/dd</Format>
+                  </Style>
+                </TextRun>
+              </TextRuns>
+              <Style>
+                <TextAlign>Right</TextAlign>
+              </Style>
+            </Paragraph>
           </Paragraphs>
           <rd:DefaultName>Textbox6</rd:DefaultName>
-          <Top>2.18593cm</Top>
+          <Top>2.50343cm</Top>
           <Left>8.48416cm</Left>
-          <Height>0.6cm</Height>
+          <Height>1.34082cm</Height>
           <Width>9.18753cm</Width>
           <ZIndex>2</ZIndex>
           <Style>
@@ -399,7 +448,7 @@
           </Style>
         </Textbox>
         <Line Name="Line1">
-          <Top>5.21127cm</Top>
+          <Top>5.84627cm</Top>
           <Left>0.07938cm</Left>
           <Height>0cm</Height>
           <Width>17.59231cm</Width>
@@ -666,6 +715,12 @@
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="Period">
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
+      <Prompt>ReportParameter1</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AgentName">
       <DataType>String</DataType>
       <Nullable>true</Nullable>
       <AllowBlank>true</AllowBlank>

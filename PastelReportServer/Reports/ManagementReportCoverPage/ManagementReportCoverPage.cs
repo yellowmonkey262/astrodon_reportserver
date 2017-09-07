@@ -13,12 +13,12 @@ namespace Astrodon.Reports.LevyRoll
 {
     public class ManagementReportCoverPage
     {
-        public byte[] RunReport(DateTime dDate, string buildingName, List<TOCDataItem> tocDataItems)
+        public byte[] RunReport(DateTime dDate, string buildingName,string agent, List<TOCDataItem> tocDataItems)
         {
-            return RunReportToPdf(dDate, buildingName, tocDataItems);
+            return RunReportToPdf(dDate, buildingName, agent, tocDataItems);
         }
 
-        private byte[] RunReportToPdf(DateTime dDate, string building, List<TOCDataItem> tocDataItems)
+        private byte[] RunReportToPdf(DateTime dDate, string building, string agent, List<TOCDataItem> tocDataItems)
         {
             string rdlcPath = "Astrodon.Reports.ManagementReportCoverPage.ManagementReportCoverPageReport.rdlc";
             byte[] report = null;
@@ -30,6 +30,7 @@ namespace Astrodon.Reports.LevyRoll
 
             reportParams.Add("BuildingName", building);
             reportParams.Add("Period", period);
+            reportParams.Add("AgentName", agent);
 
             reportData.Add("dsTocItems", tocDataItems);
 
