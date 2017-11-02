@@ -18,6 +18,7 @@ select m.CustomerCode, m.CustomerDesc,
 from [DataSet].CustomerMaster m left join 
      [DataSet].LedgerTransactions t on  t.AccNumber = m.CustomerCode
 where PPeriod = ?
+  %CUSTOMERCODEFILTER%
 group by  m.CustomerCode, m.CustomerDesc, BalanceThis01,
   BalanceThis01,BalanceThis02, BalanceThis03, BalanceThis04, BalanceThis05, BalanceThis06, BalanceThis07, BalanceThis08, BalanceThis09, BalanceThis10, BalanceThis11, BalanceThis12,
   BalanceLast01, BalanceLast02 ,BalanceLast03 ,BalanceLast04 ,BalanceLast05 ,BalanceLast06, BalanceLast07, BalanceLast08, BalanceLast09, BalanceLast10, BalanceLast11,BalanceLast12,BalanceLast13

@@ -16,7 +16,7 @@ namespace Astrodon.Reports.LevyRoll
         {
             DateTime dDate = new DateTime(processMonth.Year, processMonth.Month, 1);
             int period;
-            List<LevyRollDataItem> data = LoadReportData(processMonth, dataPath,  out period);
+            List<LevyRollDataItem> data = LoadReportData(processMonth, dataPath,null,  out period);
 
             List<SundryDataItem> sundries = new List<SundryDataItem>();
             if (includeSundries)
@@ -33,8 +33,21 @@ namespace Astrodon.Reports.LevyRoll
             return RunReportToPdf(data, sundries, dDate, buildingName);
         }
 
-        public List<LevyRollDataItem> LoadReportData(DateTime processMonth, string dataPath, out int period)
+        public List<LevyRollDataItem> LoadReportData(DateTime processMonth, string dataPath,List<string> customers, out int period)
         {
+            string customerCodeFilter = "";
+            if(customers != null && customers.Count > 0)
+            {
+                for(int x=0; x< customers.Count; x++)
+                {
+                    if (x == 0)
+                        customerCodeFilter = "  m.CustomerCode in ('" + customers[x] + "'";
+                    else
+                        customerCodeFilter = customerCodeFilter + ",'" + customers[x] + "'";
+                }
+                customerCodeFilter = customerCodeFilter + ")";
+            }
+
             List<LevyRollDataItem> data;
             var dDate = new DateTime(processMonth.Year, processMonth.Month, 1);
             string sqlPeriodConfig = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.PeriodParameters.sql");
@@ -60,11 +73,22 @@ namespace Astrodon.Reports.LevyRoll
             //run the main report query
             string sqlQuery = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.LevyRollAllCustomers.sql");
             sqlQuery = SetDataSource(sqlQuery, dataPath);
+            if (!string.IsNullOrWhiteSpace(customerCodeFilter))
+                sqlQuery = sqlQuery.Replace(" %CUSTOMERCODEFILTER%", " WHERE " + customerCodeFilter);
+            else
+                sqlQuery = sqlQuery.Replace(" %CUSTOMERCODEFILTER%", "");
+
 
             var allMasterAccounts = PervasiveSqlUtilities.FetchPervasiveData(sqlQuery, null);
 
             sqlQuery = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.LevyRoll.sql");
             sqlQuery = SetDataSource(sqlQuery, dataPath);
+
+            if (!string.IsNullOrWhiteSpace(customerCodeFilter))
+                sqlQuery = sqlQuery.Replace(" %CUSTOMERCODEFILTER%", " AND " + customerCodeFilter);
+            else
+                sqlQuery = sqlQuery.Replace(" %CUSTOMERCODEFILTER%", "");
+
 
             var reportDB = PervasiveSqlUtilities.FetchPervasiveData(sqlQuery, new OdbcParameter("@PPeriod", period));
             data = new List<LevyRollDataItem>();

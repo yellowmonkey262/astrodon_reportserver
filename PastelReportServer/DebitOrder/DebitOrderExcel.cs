@@ -43,7 +43,13 @@ namespace Astrodon.DebitOrder
             DateTime collectionDay = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
             var building = _DataContext.tblBuildings.Single(a => a.id == buildingId);
             var buildingSettings = _DataContext.tblBuildingSettings.SingleOrDefault(a => a.buildingID == buildingId);
-            var levyRollData = new LevyRollReport().LoadReportData(processMonth, building.DataPath, out period);
+            var levyRollData = new List<LevyRollDataItem>();
+
+            if (debitOrderItems.Count > 0)
+            {
+                var customers = debitOrderItems.Select(a => a.CustomerCode).Distinct().ToList();
+                levyRollData = new LevyRollReport().LoadReportData(processMonth, building.DataPath, customers, out period);
+            }
 
             decimal debitOrderFee = 0;
             if (buildingSettings != null)
@@ -100,9 +106,10 @@ namespace Astrodon.DebitOrder
                             wsSheet1.Cells["N1"].Value = "COMMENT";
 
                         }
-                        int rowNum = 2;
+                        int rowNum = 1;
                         foreach (var row in debitOrderItems.Where(a => a.AmountDue > 0).OrderBy(a => a.BuildingId).ThenBy(a => a.CustomerCode))
                         {
+                            rowNum++;
                             wsSheet1.Cells["A" + rowNum.ToString()].Value = "";
                             wsSheet1.Cells["B" + rowNum.ToString()].Value = row.Reference;
                             wsSheet1.Cells["C" + rowNum.ToString()].Value = row.SupplierName;
@@ -113,7 +120,9 @@ namespace Astrodon.DebitOrder
                             wsSheet1.Cells["H" + rowNum.ToString()].Value = row.AccountType;
                             wsSheet1.Cells["I" + rowNum.ToString()].Value = row.AccountNumber;
                             wsSheet1.Cells["J" + rowNum.ToString()].Value = row.CollectionDay.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+
                             wsSheet1.Cells["K" + rowNum.ToString()].Value = row.CollectionAmount.ToString("###,##0.00", CultureInfo.InvariantCulture);
+
                             if (showFeeBreakdown)
                             {
                                 wsSheet1.Cells["L" + rowNum.ToString()].Value = row.DebitOrderFee.ToString("###,##0.00", CultureInfo.InvariantCulture);
