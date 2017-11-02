@@ -1,5 +1,6 @@
 ﻿using Astrodon.DataContracts;
 using Astrodon.DataContracts.Maintenance;
+using Astrodon.DebitOrder;
 using Astrodon.Reports.ManagementReportCoverPage;
 using System;
 using System.Collections.Generic;
@@ -37,5 +38,15 @@ namespace PastelDataService
 
         [OperationContract]
         byte[] InsuranceSchedule(string sqlConnectionString, int buildingId);
+
+        [OperationContract]
+        List<DebitOrderItem> RunDebitOrderForBuilding(string sqlConnectionString, int buildingId, DateTime processMonth, bool showFeeBreakdown);
+
+        [OperationContract]
+        byte[] SAPORDebitOrder(string sqlConnectionString, List<DebitOrderItem> items, bool showFeeBreakdown);
+
+        [OperationContract]
+        byte[] MonthlyReport(string sqlConnectionString, DateTime processMonth, bool completedItems, int? userId);
+
     }
 }

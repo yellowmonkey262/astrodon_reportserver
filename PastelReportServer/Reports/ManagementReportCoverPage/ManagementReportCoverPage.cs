@@ -31,6 +31,7 @@ namespace Astrodon.Reports.LevyRoll
             reportParams.Add("BuildingName", building);
             reportParams.Add("Period", period);
             reportParams.Add("AgentName", agent);
+            reportParams.Add("Created", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
 
             reportData.Add("dsTocItems", tocDataItems);
 

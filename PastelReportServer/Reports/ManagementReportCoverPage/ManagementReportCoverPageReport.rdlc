@@ -395,11 +395,11 @@
                   </Style>
                 </TextRun>
                 <TextRun>
-                  <Value>=Globals!ExecutionTime</Value>
+                  <Value>=Parameters!Created.Value</Value>
                   <Style>
                     <FontFamily>Courier New</FontFamily>
                     <FontSize>8pt</FontSize>
-                    <Format>g</Format>
+                    <Format>yyyy/MM/dd</Format>
                   </Style>
                 </TextRun>
               </TextRuns>
@@ -721,6 +721,12 @@
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="AgentName">
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
+      <Prompt>ReportParameter1</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Created">
       <DataType>String</DataType>
       <Nullable>true</Nullable>
       <AllowBlank>true</AllowBlank>

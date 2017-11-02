@@ -20,9 +20,9 @@ namespace Astrodon.Reports.InsuranceSchedule
 
         public byte[] RunReport(int buildingId)
         {
-            var building = _context.tblBuildings.Single(a => a.id == buildingId);
+            var building = _context.tblBuildings.Include(a => a.InsuranceBroker).Single(a => a.id == buildingId);
 
-            var buildingUnits = _context.BuildingUnitSet.Where(a => a.BuildingId == buildingId).ToList();
+            var buildingUnits = _context.BuildingUnitSet.Where(a => a.BuildingId == buildingId && a.SquareMeters > 0).ToList();
 
             var reportDataSet = buildingUnits.Select(a=> new InsuranceScheduleDataItem()
             {
@@ -51,15 +51,28 @@ namespace Astrodon.Reports.InsuranceSchedule
             reportParams.Add("AccountNumber", building.bankAccNumber);
             reportParams.Add("BranchCode", building.branch);
 
-            reportParams.Add("BrokerCompany", building.InsuranceCompanyName);
-            reportParams.Add("BrokerAccountNumber", building.InsuranceAccountNumber);
-            reportParams.Add("BrokerName", building.BrokerName);
-            reportParams.Add("BrokerTel", building.BrokerTelNumber);
-            reportParams.Add("BrokerEmail", building.BrokerEmail);
+            reportParams.Add("BrokerAccountNumber", building.PolicyNumber);
+            if (building.InsuranceBroker != null)
+            {
+                reportParams.Add("BrokerCompany", building.InsuranceBroker.CompanyName);
+                reportParams.Add("BrokerName", building.InsuranceBroker.ContactPerson);
+                reportParams.Add("BrokerTel", building.InsuranceBroker.ContactNumber);
+                reportParams.Add("BrokerEmail", building.InsuranceBroker.EmailAddress);
+            }
+
             reportParams.Add("CommonPropertyDimension", building.CommonPropertyDimensions.ToString());
-            reportParams.Add("CommonReplacementValue", building.CommonPropertyReplacementCost.ToString("#,##0.00"));
+            if (building.CommonPropertyReplacementCost > 0 && !building.InsuranceReplacementValueIncludesCommonProperty)
+                reportParams.Add("CommonReplacementValue", building.CommonPropertyReplacementCost.ToString("#,##0.00"));
+            else
+            {
+                if(building.InsuranceReplacementValueIncludesCommonProperty)
+                  reportParams.Add("CommonReplacementValue", "Included in Replacement Value");
+            }
+
             reportParams.Add("UnitPropertyDimension", building.UnitPropertyDimensions.ToString());
-            reportParams.Add("UnitReplacementValue", building.UnitReplacementCost.ToString("#,##0.00"));
+
+            string replacementString = building.UnitReplacementCost.ToString("#,##0.00");
+            reportParams.Add("UnitReplacementValue", replacementString);
 
             reportData.Add("dsInsuranceData", reportDataSet);
 

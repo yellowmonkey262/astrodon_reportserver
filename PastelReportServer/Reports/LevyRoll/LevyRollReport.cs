@@ -15,7 +15,28 @@ namespace Astrodon.Reports.LevyRoll
         public byte[] RunReport(DateTime processMonth, string buildingName, string dataPath, bool includeSundries)
         {
             DateTime dDate = new DateTime(processMonth.Year, processMonth.Month, 1);
+            int period;
+            List<LevyRollDataItem> data = LoadReportData(processMonth, dataPath,  out period);
 
+            List<SundryDataItem> sundries = new List<SundryDataItem>();
+            if (includeSundries)
+            {
+                string sundriesQry = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.Sundries.sql");
+                sundriesQry = SetDataSource(sundriesQry, dataPath);
+                var reportDB = PervasiveSqlUtilities.FetchPervasiveData(sundriesQry, new OdbcParameter("@PPeriod", period));
+                foreach (DataRow row in reportDB.Rows)
+                {
+                    sundries.Add(new SundryDataItem(row));
+                }
+            }
+
+            return RunReportToPdf(data, sundries, dDate, buildingName);
+        }
+
+        public List<LevyRollDataItem> LoadReportData(DateTime processMonth, string dataPath, out int period)
+        {
+            List<LevyRollDataItem> data;
+            var dDate = new DateTime(processMonth.Year, processMonth.Month, 1);
             string sqlPeriodConfig = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.PeriodParameters.sql");
             sqlPeriodConfig = SetDataSource(sqlPeriodConfig, dataPath);
             var periodData = PervasiveSqlUtilities.FetchPervasiveData(sqlPeriodConfig, null);
@@ -25,7 +46,7 @@ namespace Astrodon.Reports.LevyRoll
                 periodItem = new PeriodDataItem(row);
                 break;
             }
-            int period = 0;
+            period = 0;
             try
             {
                 period = periodItem.PeriodNumberLookup(dDate);
@@ -46,8 +67,7 @@ namespace Astrodon.Reports.LevyRoll
             sqlQuery = SetDataSource(sqlQuery, dataPath);
 
             var reportDB = PervasiveSqlUtilities.FetchPervasiveData(sqlQuery, new OdbcParameter("@PPeriod", period));
-
-            List<LevyRollDataItem> data = new List<LevyRollDataItem>();
+            data = new List<LevyRollDataItem>();
             foreach (DataRow row in reportDB.Rows)
             {
                 data.Add(new LevyRollDataItem(row, period));
@@ -63,19 +83,7 @@ namespace Astrodon.Reports.LevyRoll
                 }
             }
 
-            List<SundryDataItem> sundries = new List<SundryDataItem>();
-            if (includeSundries)
-            {
-                string sundriesQry = PervasiveSqlUtilities.ReadResourceScript("Astrodon.Reports.Scripts.Sundries.sql");
-                sundriesQry = SetDataSource(sundriesQry, dataPath);
-                reportDB = PervasiveSqlUtilities.FetchPervasiveData(sundriesQry, new OdbcParameter("@PPeriod", period));
-                foreach (DataRow row in reportDB.Rows)
-                {
-                    sundries.Add(new SundryDataItem(row));
-                }
-            }
-
-            return RunReportToPdf(data, sundries, dDate, buildingName);
+            return data;
         }
 
         private byte[] RunReportToPdf(List<LevyRollDataItem> data, List<SundryDataItem> sundries, DateTime dDate, string building)

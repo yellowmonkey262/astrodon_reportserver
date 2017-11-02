@@ -17,6 +17,9 @@ using Astrodon.DataProcessor;
 using Astrodon.Reports.RequisitionBatch;
 using Astrodon.Reports.ManagementReportCoverPage;
 using Astrodon.Reports.InsuranceSchedule;
+using Astrodon.Data.DebitOrder;
+using Astrodon.DebitOrder;
+using Astrodon.Reports.MonthlyReport;
 
 namespace PastelDataService
 {
@@ -92,6 +95,38 @@ namespace PastelDataService
                 var rp = new InsuranceScheduleReport(dc);
 
                 return rp.RunReport(buildingId);
+            }
+        }
+
+        public byte[] SAPORDebitOrder(string sqlConnectionString, List<DebitOrderItem> items, bool showFeeBreakdown)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new DebitOrderExcel(dc);
+
+                return rp.RunDebitOrder(items, showFeeBreakdown);
+            }
+
+            
+        }
+
+        public byte[] MonthlyReport(string sqlConnectionString, DateTime processMonth, bool completedItems, int? userId)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new MonthlyReportExport(dc);
+
+                return rp.RunReport(processMonth, completedItems, userId);
+            }
+        }
+
+        public List<DebitOrderItem> RunDebitOrderForBuilding(string sqlConnectionString, int buildingId, DateTime processMonth, bool showFeeBreakdown)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new DebitOrderExcel(dc);
+
+                return rp.RunDebitOrderForBuilding(buildingId, processMonth, showFeeBreakdown);
             }
         }
     }
