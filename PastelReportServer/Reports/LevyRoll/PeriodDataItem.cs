@@ -10,28 +10,31 @@ namespace Astrodon.Reports.LevyRoll
     {
 
         private List<PeriodItem> _ItemList;
-           
+        private int _maxPeriodThis;
+        private int _maxPeriodLast;
+
+
         public PeriodDataItem(DataRow row)
         {
-            int maxPeriodThis = ReadInt(row["NumberPeriodsThis"],12);
-            int maxPeriodLast = ReadInt(row["NumberPeriodsLast"], 12);
+            //NumberPeriodsThis,NumberPeriodsLast,
+            _maxPeriodThis = ReadShort(row["NumberPeriodsThis"],12);
+            _maxPeriodLast = ReadShort(row["NumberPeriodsLast"], 12);
             _ItemList = new List<PeriodItem>();
             //Period this
-            for (int x=1; x<= 13; x++)
+            for (int x=1; x <= 20; x++)
             {
-                var itm = new PeriodItem();
-
-                if (x <= maxPeriodThis)
+                if (x <= _maxPeriodThis)
                 {
+                    var itm = new PeriodItem();
                     itm.PeriodNumber = 100 + x;
                     itm.Start = ReadDate(row["PerStartThis" + x.ToString().PadLeft(2, '0')]);
                     itm.End = ReadDate(row["PerEndThis" + x.ToString().PadLeft(2, '0')]);
                     _ItemList.Add(itm);
                 }
 
-                if (x <= maxPeriodLast)
+                if (x <= _maxPeriodLast)
                 {
-                    itm = new PeriodItem();
+                    var itm = new PeriodItem();
                     itm.PeriodNumber = x;
                     itm.Start = ReadDate(row["PerStartLast" + x.ToString().PadLeft(2, '0')]);
                     itm.End = ReadDate(row["PerEndLast" + x.ToString().PadLeft(2, '0')]);
@@ -41,13 +44,25 @@ namespace Astrodon.Reports.LevyRoll
             }
         }
 
+        private int ReadShort(object cell, int def)
+        {
+            try
+            {
+                return (short)cell;
+            }
+            catch
+            {
+                return def;
+            }
+        }
+
         private int ReadInt(object cell, int def)
         {
             try
             {
                 return (int)cell;
             }
-            catch
+            catch(Exception e)
             {
                 return def;
             }
@@ -64,7 +79,13 @@ namespace Astrodon.Reports.LevyRoll
         {
             var x = _ItemList.Where(a => a.Start == date).FirstOrDefault();
             if (x == null)
-                throw new Exception("No period found in Ledger Parameters for " + date.ToString("yyyyMMdd"));
+            {
+                string errorMessage = "Period not found Start: " + _ItemList.Where(a => a.Start != null).Min(a => a.Start).Value.ToString("yyyyMMdd")
+                                                                 + " - " + _ItemList.Where(a => a.Start != null).Max(a => a.Start).Value.ToString("yyyyMMdd")
+                                                                 + " max THIS: " + _maxPeriodThis.ToString()
+                                                                 + " max LAST: " + _maxPeriodLast.ToString();
+                throw new Exception(errorMessage + " for " + date.ToString("yyyyMMdd"));
+            }
             return x.PeriodNumber;
         }
     }

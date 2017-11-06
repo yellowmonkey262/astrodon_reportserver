@@ -98,17 +98,6 @@ namespace PastelDataService
             }
         }
 
-        public byte[] SAPORDebitOrder(string sqlConnectionString, List<DebitOrderItem> items, bool showFeeBreakdown)
-        {
-            using (var dc = new DataContext(sqlConnectionString))
-            {
-                var rp = new DebitOrderExcel(dc);
-
-                return rp.RunDebitOrder(items, showFeeBreakdown);
-            }
-
-            
-        }
 
         public byte[] MonthlyReport(string sqlConnectionString, DateTime processMonth, bool completedItems, int? userId)
         {

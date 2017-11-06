@@ -32,6 +32,7 @@ namespace Astrodon.DebitOrder
 
         [DataMember]
         public decimal DebitOrderFee { get; set; }
+
         [DataMember]
         public decimal AmountDue { get; set; }
 
@@ -44,16 +45,26 @@ namespace Astrodon.DebitOrder
         public string SupplierName { get { return "ASTRODON"; } }
         public string Holnes { get { return CustomerCode + " " + CustomerName; } }
         public string Description { get { return "ASTRODON"; } }
-        public decimal CollectionAmount
+
+        public decimal ExportDebitOrderFee
         {
             get
             {
                 if (IsDebitOrderFeeDisabledOnBuilding || DebitOrderFeeDisabled)
-                    return AmountDue;
+                    return 0;
                 else
-                    return AmountDue + DebitOrderFee;
+                    return DebitOrderFee;
             }
         }
+
+        public decimal CollectionAmount
+        {
+            get
+            {
+                return AmountDue + ExportDebitOrderFee;
+            }
+        }
+
         public string AccountType { get { return ((int)AccountTypeId).ToString(); } }
         #endregion
 
