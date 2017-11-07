@@ -81,9 +81,7 @@ namespace Astrodon.Reports.LevyRoll
             if (x == null)
             {
                 string errorMessage = "Period not found Start: " + _ItemList.Where(a => a.Start != null).Min(a => a.Start).Value.ToString("yyyyMMdd")
-                                                                 + " - " + _ItemList.Where(a => a.Start != null).Max(a => a.Start).Value.ToString("yyyyMMdd")
-                                                                 + " max THIS: " + _maxPeriodThis.ToString()
-                                                                 + " max LAST: " + _maxPeriodLast.ToString();
+                                                                 + " - " + _ItemList.Where(a => a.Start != null).Max(a => a.Start).Value.ToString("yyyyMMdd");
                 throw new Exception(errorMessage + " for " + date.ToString("yyyyMMdd"));
             }
             return x.PeriodNumber;

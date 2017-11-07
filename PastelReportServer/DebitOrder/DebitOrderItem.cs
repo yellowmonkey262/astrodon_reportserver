@@ -34,10 +34,37 @@ namespace Astrodon.DebitOrder
         public decimal DebitOrderFee { get; set; }
 
         [DataMember]
+        public decimal LevyRollDue { get; set; }
+
+        [DataMember]
+        public decimal Payments { get; set; }
+
+        [DataMember]
         public decimal AmountDue { get; set; }
 
         [DataMember]
         public bool DebitOrderFeeDisabled { get; set; }
+
+
+        [DataMember]
+        public DateTime? DebitOrderCancelDate { get; set; }
+
+        [DataMember]
+        public bool DebitOrderCancelled { get; set; }
+
+        public bool DebitOrderActive
+        {
+            get
+            {
+                if (DebitOrderCancelled == false)
+                    return true;
+
+                if (DebitOrderCancelDate == null)
+                    return true;
+
+                return CollectionDay <= DebitOrderCancelDate.Value.Date;
+            }
+        }
 
         #region ExportField
         public string SupplierId { get { return string.Empty; } }
@@ -66,6 +93,7 @@ namespace Astrodon.DebitOrder
         }
 
         public string AccountType { get { return ((int)AccountTypeId).ToString(); } }
+
         #endregion
 
     }

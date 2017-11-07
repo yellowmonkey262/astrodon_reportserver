@@ -34,13 +34,16 @@ namespace Astrodon.DebitOrder
                                         AccountTypeId = b.AccountType,
                                         AccountNumber = b.AccountNumber,
                                         DebitOrderCollectionDay = b.DebitOrderCollectionDay,
-                                        DebitOrderFeeDisabled = b.IsDebitOrderFeeDisabled //disabled on unit level
+                                        DebitOrderFeeDisabled = b.IsDebitOrderFeeDisabled, //disabled on unit level
+                                        DebitOrderCancelDate = b.DebitOrderCancelDate,
+                                        DebitOrderCancelled = b.DebitOrderCancelled
                                     });
 
-            var debitOrderItems = query.ToList();
+            var debitOrderItems = query.ToList().Where(a => a.DebitOrderActive).ToList();
 
 
-            DateTime collectionDay = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
+         //   DateTime collectionDay = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
+            DateTime collectionDay = new DateTime(processMonth.Year, processMonth.Month, 1);
             var building = _DataContext.tblBuildings.Single(a => a.id == buildingId);
             var buildingSettings = _DataContext.tblBuildingSettings.SingleOrDefault(a => a.buildingID == buildingId);
             var levyRollData = new List<LevyRollDataItem>();
@@ -65,7 +68,9 @@ namespace Astrodon.DebitOrder
                 var levyRollItem = levyRollData.SingleOrDefault(a => a.CustomerCode.Trim().ToLower() == item.CustomerCode.Trim().ToLower());
                 if (levyRollItem != null)
                 {
-                    item.AmountDue = levyRollItem.Due;
+                    item.LevyRollDue = levyRollItem.Due;
+                    item.Payments = levyRollItem.Payments;
+                    item.AmountDue = item.LevyRollDue + item.Payments;
                     item.CustomerName = levyRollItem.CustomerDesc;
                 }
                 if (item.DebitOrderCollectionDay == DebitOrderDayType.One)
