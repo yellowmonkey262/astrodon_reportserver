@@ -36,7 +36,8 @@ namespace Astrodon.DebitOrder
                                         DebitOrderCollectionDay = b.DebitOrderCollectionDay,
                                         DebitOrderFeeDisabled = b.IsDebitOrderFeeDisabled, //disabled on unit level
                                         DebitOrderCancelDate = b.DebitOrderCancelDate,
-                                        DebitOrderCancelled = b.DebitOrderCancelled
+                                        DebitOrderCancelled = b.DebitOrderCancelled,
+                                        MaxDebitOrderAmount = b.MaxDebitAmount
                                     });
 
             var debitOrderItems = query.ToList().Where(a => a.DebitOrderActive).ToList();

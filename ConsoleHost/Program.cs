@@ -14,7 +14,11 @@ namespace SelfHosted
 
         static void Main(string[] args)
         {
-        
+
+            //    ProcessorThread.ProcessWorkSchedule();
+            ProcessorThread.ScheduleFinancialMeetings();
+
+            //    return;
 
             ReportServiceHost host = new ReportServiceHost();
             Console.WriteLine("Service is running");

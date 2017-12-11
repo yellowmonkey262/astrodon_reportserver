@@ -62,7 +62,7 @@ namespace Astrodon.DebitOrder
                 if (DebitOrderCancelDate == null)
                     return true;
 
-                return CollectionDay <= DebitOrderCancelDate.Value.Date;
+                return DateTime.Today <= DebitOrderCancelDate.Value.Date;
             }
         }
 
@@ -88,13 +88,20 @@ namespace Astrodon.DebitOrder
         {
             get
             {
-                return AmountDue + ExportDebitOrderFee;
+                var amount = AmountDue + ExportDebitOrderFee;
+                if (MaxDebitOrderAmount >= 0 && MaxDebitOrderAmount < amount)
+                    return MaxDebitOrderAmount;
+
+                return amount;
             }
         }
 
         public string AccountType { get { return ((int)AccountTypeId).ToString(); } }
 
         #endregion
+
+        [DataMember]
+        public decimal MaxDebitOrderAmount { get; set; }
 
     }
 }

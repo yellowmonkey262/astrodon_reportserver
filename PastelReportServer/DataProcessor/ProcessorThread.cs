@@ -1,4 +1,5 @@
 ﻿using Astrodon.Data;
+using Astrodon.Reports.AllocationWorksheet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,10 +13,14 @@ namespace Astrodon.DataProcessor
     {
         private static String connStringDefault = "Data Source=SERVER-SQL;Initial Catalog=Astrodon;Persist Security Info=True;User ID=sa;Password=@str0d0n"; //Astrodon
         private static String connStringL = "Data Source=STEPHEN-PC\\MTDNDSQL;Initial Catalog=Astrodon;Persist Security Info=True;User ID=sa;Password=m3t@p@$$"; //Local
+
+    
+
         private static String connStringD = "Data Source=DEVELOPERPC\\SQLEXPRESS;Initial Catalog=Astrodon;Persist Security Info=True;User ID=sa;Password=$DEVELOPER$"; //Astrodon
         private static String connStringLocal = "Data Source=.;Initial Catalog=Astrodon;Persist Security Info=True;User ID=sa;Password=1q2w#E$R"; //LamaDev
 
         private DateTime _NextRun = DateTime.Now.AddMinutes(1);
+        private DateTime _NextSchedule = DateTime.Today;
 
         public ProcessorThread()
         {
@@ -32,6 +37,8 @@ namespace Astrodon.DataProcessor
 
         public void Run()
         {
+            //run tomorrow the new schedule
+            _NextSchedule = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 06, 00, 00).AddDays(1);
             while (!Terminated)
             {
                 try
@@ -50,12 +57,32 @@ namespace Astrodon.DataProcessor
                     LogException(e);
                 }
 
+                if(DateTime.Now > _NextSchedule)
+                {
+                    _NextSchedule = _NextSchedule.AddDays(1);
+                    try
+                    {
+                        ProcessWorkSchedule();
+                    }
+                    catch (Exception e)
+                    {
+                        LogException(e);
+                    }
+                    try
+                    {
+                        ScheduleFinancialMeetings();
+                    }
+                    catch (Exception e)
+                    {
+                        LogException(e);
+                    }
+                }
+
                 Thread.Sleep(1000);
             }
         }
 
-
-
+    
         private void LogException(Exception e)
         {
             using (var context = new DataContext(GetConnectionString()))
@@ -66,9 +93,9 @@ namespace Astrodon.DataProcessor
                     Message = e.Message,
                     StackTrace = e.StackTrace
                 });
+                context.SaveChanges();
             }
         }
-
 
         private static string GetConnectionString()
         {
@@ -84,8 +111,6 @@ namespace Astrodon.DataProcessor
                 return connStringLocal;
             return connStringDefault;
         }
-
-
 
         private void ProcessBuildingMatches()
         {
@@ -112,6 +137,26 @@ namespace Astrodon.DataProcessor
                 {
                     LogException(e);
                 }
+            }
+        }
+
+        public static void ProcessWorkSchedule()
+        {
+            using (var dc = new DataContext(GetConnectionString()))
+            {
+                var rp = new AllocationWorksheetReport(dc);
+
+                rp.EmailAllocations();
+            }
+        }
+
+        public static void ScheduleFinancialMeetings()
+        {
+            using (var dc = new DataContext(GetConnectionString()))
+            {
+                var rp = new FixedFinancialMeetingsProcessor(dc);
+
+                rp.ScheduleMeetings();
             }
         }
 

@@ -16,9 +16,13 @@ namespace Astrodon.Reports.SupplierReport
         }
 
 
-        internal byte[] RunReport(DateTime fromDate, DateTime toDate, int buildingId)
+        internal byte[] RunReport(DateTime fromDate, DateTime toDate, int? buildingId, int? supplierId)
         {
             //setup query
+            if (buildingId == null)
+                buildingId = 0;
+            if (supplierId == null)
+                supplierId = 0;
 
             DateTime startDate = new DateTime(fromDate.Year, fromDate.Month, 1);
             DateTime endDate = new DateTime(toDate.Year, toDate.Month, 1).AddMonths(1).AddSeconds(-1);
@@ -27,6 +31,7 @@ namespace Astrodon.Reports.SupplierReport
                               from m in s.Maintenance
                               where m.DateLogged >= startDate && m.DateLogged <= endDate
                               && (buildingId == 0 || m.Requisition.building == buildingId)
+                              && (supplierId == 0 ||s.id == supplierId)
                               group m by new
                               {
                                   s.id,

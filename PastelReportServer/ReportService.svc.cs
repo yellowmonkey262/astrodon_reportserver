@@ -20,6 +20,7 @@ using Astrodon.Reports.InsuranceSchedule;
 using Astrodon.Data.DebitOrder;
 using Astrodon.DebitOrder;
 using Astrodon.Reports.MonthlyReport;
+using Astrodon.Reports.AllocationWorksheet;
 
 namespace PastelDataService
 {
@@ -51,13 +52,13 @@ namespace PastelDataService
         }
       
 
-        public byte[] SupplierReport(string sqlConnectionString, DateTime fromDate, DateTime toDate, int buildingId)
+        public byte[] SupplierReport(string sqlConnectionString, DateTime fromDate, DateTime toDate, int? buildingId, int? supplierId)
         {
             using (var dc = new DataContext(sqlConnectionString))
             {
                 var rp = new SupplierReport(dc);
 
-                return rp.RunReport(fromDate,toDate,buildingId);
+                return rp.RunReport(fromDate,toDate,buildingId,supplierId);
             }
         }
 
@@ -78,7 +79,7 @@ namespace PastelDataService
             {
                 var rp = new RequisitionBatchReport(dc);
 
-                return rp.RunReport(requisitionBatchId);
+                return rp.RunReport(requisitionBatchId, sqlConnectionString);
             }
         }
 
@@ -118,5 +119,7 @@ namespace PastelDataService
                 return rp.RunDebitOrderForBuilding(buildingId, processMonth, showFeeBreakdown);
             }
         }
+
+       
     }
 }

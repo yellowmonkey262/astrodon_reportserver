@@ -76,10 +76,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Mailer.cs" />
     <Compile Include="DataContracts\MaintenanceReportType.cs" />
     <Compile Include="DataContracts\Maintenance\PastelMaintenanceTransaction.cs" />
     <Compile Include="DataContracts\PaymentTransaction.cs" />
     <Compile Include="DataContracts\PervasiveItem.cs" />
+    <Compile Include="DataProcessor\FixedFinancialMeetingsProcessor.cs" />
     <Compile Include="DataProcessor\MaintenanceProcessor.cs" />
     <Compile Include="DataProcessor\ProcessorThread.cs" />
     <Compile Include="DataProcessor\RequisitionProcessor.cs" />
@@ -93,6 +95,8 @@
     <Compile Include="ReportService.svc.cs">
       <DependentUpon>ReportService.svc</DependentUpon>
     </Compile>
+    <Compile Include="Reports\AllocationWorksheet\AllocationItem.cs" />
+    <Compile Include="Reports\AllocationWorksheet\AllocationWorksheetReport.cs" />
     <Compile Include="Reports\IdValue.cs" />
     <Compile Include="Reports\InsuranceSchedule\InsuranceScheduleReport.cs" />
     <Compile Include="Reports\InsuranceSchedule\InsuranceScheduleDataItem.cs" />
