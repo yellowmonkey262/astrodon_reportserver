@@ -45,5 +45,9 @@ namespace PastelDataService
         [OperationContract]
         byte[] MonthlyReport(string sqlConnectionString, DateTime processMonth, bool completedItems, int? userId);
 
+        [OperationContract]
+        void RequestAllocations(string sqlConnectionString, int userId);
+
+
     }
 }

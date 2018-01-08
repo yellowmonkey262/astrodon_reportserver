@@ -18,26 +18,36 @@ namespace Astrodon.Reports.AllocationWorksheet
             this.context = dataContext;
         }
 
-        internal void EmailAllocations()
+        internal void EmailAllocations(int userId = 0)
         {
-            var userList = context.tblUsers.Where(a => a.ProcessCheckLists).ToList();
+            if (DateTime.Today.DayOfWeek == DayOfWeek.Saturday || DateTime.Today.DayOfWeek == DayOfWeek.Sunday)
+                return; //do not schedule weekends
 
-            foreach(var user in userList)
+            if (context.PublicHolidaySet.Where(a => a.Date == DateTime.Today).Count() > 0)
+                return; //today is a public holiday
+
+            var userList = context.tblUsers.Where(a => a.ProcessCheckLists && (userId == 0 || a.id == userId)).ToList();
+
+            foreach (var user in userList)
             {
                 try
                 {
-                    var allocationItems = ProcessAllocation(context, user, 6);
+                    List<AllocationItem> allocatedItems = new List<AllocationItem>();
+                    var allocationItems = ProcessAllocation(context, user, 6, allocatedItems);
                     if (allocationItems.Count > 0)
+                    {
                         EmailAllocationsToUser(user.email, allocationItems);
+                        allocatedItems.AddRange(allocatedItems);
+                    }
                 }
                 catch (Exception e)
                 {
                     LogException(e);
                 }
             }
-
         }
 
+    
         private void EmailAllocationsToUser(string email, List<AllocationItem> allocationItems)
         {
             var excelFile = CreateExcelFile(allocationItems);
@@ -142,9 +152,10 @@ namespace Astrodon.Reports.AllocationWorksheet
             return result;
         }
 
-
-        private List<AllocationItem> ProcessAllocation(DataContext context, tblUser user, int buildingsToAllocate)
+        private List<AllocationItem> ProcessAllocation(DataContext context, tblUser user, int buildingsToAllocate, List<AllocationItem> alreadyAllocated)
         {
+
+
             List<AllocationItem> result = new List<AllocationItem>();
             //find the buildings allocated to this user to process check lists for
 
@@ -163,9 +174,16 @@ namespace Astrodon.Reports.AllocationWorksheet
                             Financial = m
                         };
 
-            var myBuildingsToProcess = query.OrderBy(a => a.Financial.findate).ToList();
+            var myBuildingsToProcess = query.Distinct().OrderBy(a => a.Financial.findate).ToList();
 
-            var buildingIds = myBuildingsToProcess.Select(a => a.Building.id).Distinct().ToArray();
+            var buildingIdList = myBuildingsToProcess.Select(a => a.Building.id).Distinct().ToList();
+
+            var toRemove = alreadyAllocated.Where(a => buildingIdList.Contains(a.BuildingId)).Select(a => a.BuildingId).ToList();
+
+            foreach (var x in toRemove)
+                buildingIdList.Remove(x);
+
+            var buildingIds = buildingIdList.Distinct().ToArray();
 
             var dtStart = DateTime.Now;
             var dtEnd = dtStart.AddHours(72);
@@ -182,14 +200,12 @@ namespace Astrodon.Reports.AllocationWorksheet
                                   {
                                       c.BuildingId,
                                       c.Building.Building,
-                                      c.Building.Code,
-                                      c.EntryDate,
-                                      c.Event
+                                      c.Building.Code
                                   };
 
 
 
-            foreach (var itm in calendarEntries.OrderBy(a => a.EntryDate).ToList())
+            foreach (var itm in calendarEntries.ToList())
             {
                 var existing = result.FirstOrDefault(a => a.BuildingId == itm.BuildingId);
                 if (existing == null)
@@ -203,7 +219,7 @@ namespace Astrodon.Reports.AllocationWorksheet
                         Priority = priortiy,
                         UserId = user.id,
                         UserName = user.name,
-                        DayOfMonth = itm.EntryDate.AddHours(-72).Date
+                        DayOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)
                     });
                 }
             }

@@ -120,6 +120,14 @@ namespace PastelDataService
             }
         }
 
-       
+        public void RequestAllocations(string sqlConnectionString, int userId)
+        {
+            using (var dc = new DataContext(sqlConnectionString))
+            {
+                var rp = new AllocationWorksheetReport(dc);
+
+                 rp.EmailAllocations(userId);
+            }
+        }
     }
 }
