@@ -159,6 +159,9 @@ namespace Astrodon.Reports.AllocationWorksheet
             List<AllocationItem> result = new List<AllocationItem>();
             //find the buildings allocated to this user to process check lists for
 
+            //limit financials to last month
+            DateTime finMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-1);
+
             var query = from m in context.tblMonthFins
                         join u in context.tblUsers on m.userID equals u.id
                         join b in context.tblBuildings on m.buildingID equals b.Code
@@ -168,6 +171,7 @@ namespace Astrodon.Reports.AllocationWorksheet
                         && b.BuildingFinancialsEnabled == true
                         && (b.FinancialStartDate == null || b.FinancialStartDate <= DateTime.Today)
                         && (b.FinancialEndDate == null || b.FinancialEndDate >= DateTime.Today)
+                        && m.findate <= finMonth
                         select new
                         {
                             Building = b,

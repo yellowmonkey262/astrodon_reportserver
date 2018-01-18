@@ -21,13 +21,13 @@ namespace Astrodon.DataProcessor
 
         private DateTime _NextRun = DateTime.Now.AddMinutes(1);
         private DateTime _NextSchedule = DateTime.Today;
+        
 
         public ProcessorThread()
         {
-            _NextRun = DateTime.Now.AddSeconds(10);// new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0).AddHours(1);
+            _NextRun = DateTime.Now.AddMinutes(1);// new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0).AddHours(1);
             if (System.Diagnostics.Debugger.IsAttached)
                 _NextRun = DateTime.Now.AddSeconds(5);
-
             Terminated = false;
             new Thread(Run).Start();
         }
@@ -38,7 +38,7 @@ namespace Astrodon.DataProcessor
         public void Run()
         {
             //run tomorrow the new schedule
-            _NextSchedule = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 06, 00, 00).AddDays(1);
+            _NextSchedule = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 04, 30, 00).AddDays(1);
             while (!Terminated)
             {
                 try
@@ -54,7 +54,7 @@ namespace Astrodon.DataProcessor
                 }
                 catch (Exception e)
                 {
-                    LogException(e);
+                    LogException(e, "ProcessWorkSchedule");
                 }
 
                 if(DateTime.Now > _NextSchedule)
@@ -66,7 +66,7 @@ namespace Astrodon.DataProcessor
                     }
                     catch (Exception e)
                     {
-                        LogException(e);
+                        LogException(e, "ProcessWorkSchedule");
                     }
                     try
                     {
@@ -74,7 +74,7 @@ namespace Astrodon.DataProcessor
                     }
                     catch (Exception e)
                     {
-                        LogException(e);
+                        LogException(e, "ScheduleFinancialMeetings");
                     }
                 }
 
@@ -83,14 +83,19 @@ namespace Astrodon.DataProcessor
         }
 
     
-        private void LogException(Exception e)
+        private void LogException(Exception e, string customMessage = null)
         {
+            string error = string.Empty;
+            if (!String.IsNullOrWhiteSpace(customMessage))
+                error = customMessage + "=>" + e.Message;
+            else
+                error = e.Message;
             using (var context = new DataContext(GetConnectionString()))
             {
                 context.SystemLogSet.Add(new Data.Log.SystemLog()
                 {
                     EventTime = DateTime.Now,
-                    Message = e.Message,
+                    Message = error,
                     StackTrace = e.StackTrace
                 });
                 context.SaveChanges();
@@ -117,7 +122,7 @@ namespace Astrodon.DataProcessor
             List<int> buildingList;
             using (var context = new DataContext(GetConnectionString()))
             {
-                buildingList = context.tblBuildings.Select(a => a.id).ToList();
+                buildingList = context.tblBuildings.Where(a => a.BuildingDisabled == false).Select(a => a.id).ToList();
             }
 
             foreach (var buildingId in buildingList)
@@ -135,7 +140,7 @@ namespace Astrodon.DataProcessor
                 }
                 catch (Exception e)
                 {
-                    LogException(e);
+                    LogException(e,"Link Payments buildingId:" + buildingId.ToString());
                 }
             }
         }
