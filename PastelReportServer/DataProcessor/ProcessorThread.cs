@@ -48,7 +48,7 @@ namespace Astrodon.DataProcessor
                         _NextRun = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0).AddHours(1);
 
                         ProcessBuildingMatches();
-                        DataContext.HouseKeepSystemLog();
+                        DataContext.HouseKeepSystemLog(GetConnectionString());
                     }
 
                 }
@@ -150,7 +150,7 @@ namespace Astrodon.DataProcessor
             using (var dc = new DataContext(GetConnectionString()))
             {
                 var rp = new AllocationWorksheetReport(dc);
-
+              
                 rp.EmailAllocations();
             }
         }

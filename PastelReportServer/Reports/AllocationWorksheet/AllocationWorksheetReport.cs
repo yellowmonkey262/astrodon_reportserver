@@ -42,7 +42,7 @@ namespace Astrodon.Reports.AllocationWorksheet
                 }
                 catch (Exception e)
                 {
-                    LogException(e);
+                    LogException(e,"Unable to process user");
                 }
             }
         }
@@ -77,12 +77,12 @@ namespace Astrodon.Reports.AllocationWorksheet
             }
         }
 
-        private void LogException(Exception e)
+        private void LogException(Exception e,string section)
         {
             context.SystemLogSet.Add(new Data.Log.SystemLog()
             {
                 EventTime = DateTime.Now,
-                Message = e.Message,
+                Message = section + "=>"+e.Message,
                 StackTrace = e.StackTrace
             });
             context.SaveChanges();
@@ -111,6 +111,10 @@ namespace Astrodon.Reports.AllocationWorksheet
                         wsSheet1.Cells["D1"].Value = "Building Name";
                         wsSheet1.Cells["D1"].Style.Font.Bold = true;
 
+                        wsSheet1.Cells["E1"].Value = "Comment";
+                        wsSheet1.Cells["E1"].Style.Font.Bold = true;
+
+
                         //wsSheet1.Cells["E1"].Value = "Period";
                         //wsSheet1.Cells["E1"].Style.Font.Bold = true;
 
@@ -128,6 +132,7 @@ namespace Astrodon.Reports.AllocationWorksheet
                             wsSheet1.Cells["B" + rowNum.ToString()].Value = row.Priority;
                             wsSheet1.Cells["C" + rowNum.ToString()].Value = row.BuildingCode;
                             wsSheet1.Cells["D" + rowNum.ToString()].Value = row.BuildingName;
+                            wsSheet1.Cells["E" + rowNum.ToString()].Value = row.AllocationReason;
 
                             //wsSheet1.Cells["E" + rowNum.ToString()].Style.Numberformat.Format = "yyyy/MM/dd";
                             //wsSheet1.Cells["E" + rowNum.ToString()].Value = row.FinancialPeriod;
@@ -169,9 +174,9 @@ namespace Astrodon.Reports.AllocationWorksheet
                         && b.BuildingDisabled == false
                         && u.id == user.id
                         && b.BuildingFinancialsEnabled == true
-                        && (b.FinancialStartDate == null || b.FinancialStartDate <= DateTime.Today)
-                        && (b.FinancialEndDate == null || b.FinancialEndDate >= DateTime.Today)
                         && m.findate <= finMonth
+                        && (b.FinancialStartDate == null || b.FinancialStartDate >= m.findate)
+                        && (b.FinancialEndDate == null || b.FinancialEndDate <= m.findate)
                         select new
                         {
                             Building = b,
@@ -189,7 +194,7 @@ namespace Astrodon.Reports.AllocationWorksheet
 
             var buildingIds = buildingIdList.Distinct().ToArray();
 
-            var dtStart = DateTime.Now;
+            var dtStart = DateTime.Today;
             var dtEnd = dtStart.AddHours(72);
 
             //find all calendar entries for these buildings > today and < today + 72 hours
@@ -199,17 +204,23 @@ namespace Astrodon.Reports.AllocationWorksheet
                                   && buildingIds.Contains(c.BuildingId.Value)
                                   && c.EntryDate >= dtStart
                                   && c.EntryDate <= dtEnd
-                                   && c.Building.BuildingFinancialsEnabled == true
+                                  && c.Building.BuildingFinancialsEnabled == true
                                   select new
                                   {
                                       c.BuildingId,
                                       c.Building.Building,
-                                      c.Building.Code
+                                      c.Building.Code,  
+                                      c.EntryDate                                   
                                   };
 
+            var calendarGroup = calendarEntries
+                                .GroupBy(n => new { n.BuildingId, n.Building, n.Code })
+                                .Select(g => new { g.Key.BuildingId, g.Key.Building, g.Key.Code, EventDate = g.Min(x => x.EntryDate) });
 
 
-            foreach (var itm in calendarEntries.ToList())
+
+
+            foreach (var itm in calendarGroup.ToList())
             {
                 var existing = result.FirstOrDefault(a => a.BuildingId == itm.BuildingId);
                 if (existing == null)
@@ -223,7 +234,9 @@ namespace Astrodon.Reports.AllocationWorksheet
                         Priority = priortiy,
                         UserId = user.id,
                         UserName = user.name,
-                        DayOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)
+                        OrderDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1),
+                        ReasonDate = itm.EventDate,
+                        Reason = "Building has financial meeting Scheduled on"
                     });
                 }
             }
@@ -253,7 +266,9 @@ namespace Astrodon.Reports.AllocationWorksheet
                         Priority = priority,
                         UserId = user.id,
                         UserName = user.name,
-                        DayOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, itm.Building.FinancialDayOfMonth)
+                        OrderDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, itm.Building.FinancialDayOfMonth),
+                        ReasonDate = itm.Financial.findate,
+                        Reason = "Financial is outstanding for period"
                     });
                 }
             }
