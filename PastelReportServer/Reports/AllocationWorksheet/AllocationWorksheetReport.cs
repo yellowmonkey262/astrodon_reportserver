@@ -175,15 +175,17 @@ namespace Astrodon.Reports.AllocationWorksheet
                         && u.id == user.id
                         && b.BuildingFinancialsEnabled == true
                         && m.findate <= finMonth
-                        && (b.FinancialStartDate == null || b.FinancialStartDate >= m.findate)
-                        && (b.FinancialEndDate == null || b.FinancialEndDate <= m.findate)
-                        select new
+                        select new BuildingProspect
                         {
                             Building = b,
-                            Financial = m
+                            Financial = m,
+                            FinancialStartDate = b.FinancialStartDate,
+                            FinancialEndDate = b.FinancialEndDate,
+                            FinancialMonth = m.findate
                         };
 
-            var myBuildingsToProcess = query.Distinct().OrderBy(a => a.Financial.findate).ToList();
+            var myBuildingsToProcess = query.Distinct().ToList().Where(a => a.IsCandidate)
+                                                                .OrderBy(a => a.Financial.findate).ToList();
 
             var buildingIdList = myBuildingsToProcess.Select(a => a.Building.id).Distinct().ToList();
 
@@ -210,7 +212,9 @@ namespace Astrodon.Reports.AllocationWorksheet
                                       c.BuildingId,
                                       c.Building.Building,
                                       c.Building.Code,  
-                                      c.EntryDate                                   
+                                      c.EntryDate,
+                                      c.Building.FinancialStartDate,
+                                      c.Building.FinancialEndDate                                 
                                   };
 
             var calendarGroup = calendarEntries
@@ -236,7 +240,8 @@ namespace Astrodon.Reports.AllocationWorksheet
                         UserName = user.name,
                         OrderDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1),
                         ReasonDate = itm.EventDate,
-                        Reason = "Building has financial meeting Scheduled on"
+                        Reason = "Building has financial meeting Scheduled on",
+                    
                     });
                 }
             }
@@ -268,6 +273,8 @@ namespace Astrodon.Reports.AllocationWorksheet
                         UserName = user.name,
                         OrderDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, itm.Building.FinancialDayOfMonth),
                         ReasonDate = itm.Financial.findate,
+                        FinancialStartDate = itm.Building.FinancialStartDate,
+                        FinancialEndDate = itm.Building.FinancialEndDate,
                         Reason = "Financial is outstanding for period"
                     });
                 }
@@ -282,6 +289,39 @@ namespace Astrodon.Reports.AllocationWorksheet
 
             return result.OrderBy(a => a.Priority).Take(buildingsToAllocate).ToList();
         }
+
+        class BuildingProspect
+        {
+            public tblBuilding Building { get; internal set; }
+            public tblMonthFin Financial { get; internal set; }
+            public DateTime? FinancialEndDate { get; internal set; }
+            public DateTime FinancialMonth { get; internal set; }
+            public DateTime? FinancialStartDate { get; internal set; }
+
+            public bool IsCandidate
+            {
+                get
+                {
+                    DateTime checkStart;
+                    DateTime checkEnd;
+                    DateTime chekFinMonth = new DateTime(FinancialMonth.Year, FinancialMonth.Month, 1);
+
+                    if (FinancialEndDate != null)
+                        checkStart = new DateTime(FinancialEndDate.Value.Year, FinancialEndDate.Value.Month, 1);
+                    else
+                        checkStart = FinancialMonth;
+
+                    if (FinancialStartDate != null)
+                        checkEnd = new DateTime(FinancialStartDate.Value.Year, FinancialStartDate.Value.Month, 1);
+                    else
+                        checkEnd = FinancialMonth;
+
+                    return FinancialMonth >= checkStart && FinancialMonth <= checkEnd;
+
+                }
+            }
+        }
+
 
     }
 }

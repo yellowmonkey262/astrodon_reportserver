@@ -29,11 +29,24 @@ namespace Astrodon.Reports.AllocationWorksheet
         {
             get
             {
+                string result = "";
                 if (ReasonDate != null)
-                    return Reason + " " + ReasonDate.Value.ToString("yyyy/MM/dd");
+                     result = Reason + " " + ReasonDate.Value.ToString("yyyy/MM/dd");
                 else
-                    return Reason;
+                    result = Reason;
+
+                if (FinancialStartDate != null)
+                    result = result + " Financial Start: " + FinancialStartDate.Value.ToString("yyyy/MM/dd");
+
+
+                if (FinancialEndDate != null)
+                    result = result + " Financial End: " + FinancialEndDate.Value.ToString("yyyy/MM/dd");
+
+                return result;
             }
         }
+
+        public DateTime? FinancialStartDate { get; internal set; }
+        public DateTime? FinancialEndDate { get; internal set; }
     }
 }
